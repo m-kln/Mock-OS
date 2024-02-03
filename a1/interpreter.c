@@ -102,12 +102,12 @@ help			Displays all the commands\n \
 quit			Exits / terminates the shell with “Bye!”\n \
 set VAR STRING		Assigns a value to shell memory\n \
 print VAR		Displays the STRING assigned to VAR\n \
-run SCRIPT.TXT		Executes the file SCRIPT.TXT\n \
-my_ls                  Displays all files in current directory\n \
+run SCRIPT.TXT		Executes the file SCRIPT.TXT\n "
+/*my_ls                  Displays all files in current directory\n \
 my_mkdir DIRNAME        Creates a directory with name DIRNAME\n \
 my_touch FILENAME       Creates a new empty file with name FILENAME\n \
 my_cd DIRNAME           Changes current directory to the specified one DIRNAME\n \
-my_cat FILENAME         Displays the content of the file FILENAME to the screen\n "
+my_cat FILENAME         Displays the content of the file FILENAME to the screen\n "*/
 
 ;
 	printf("%s\n", help_string);
