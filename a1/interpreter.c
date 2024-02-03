@@ -19,8 +19,21 @@ int badcommandFileDoesNotExist(){
 	return 3;
 }
 
-int invalidName(){
+//for my_mkdir, my_touch, my_cd, my_cat
+int invalidName(){ //error message when file or directory name length is >100 chars
 	printf("%s\n", "Name of directory or file is longer than 100 characters");
+	return 3;
+}
+
+//for my_cd
+int badcommandDirectoryDoesNotExist(){ //error message when indicated directory does not exist 
+	printf("%s\n", "Bad command: my_cd");
+	return 3;
+}
+
+//for my_cat
+int badcommandCatFileDoesNotExist(){ //error message when indicated file does not exist 
+	printf("%s\n", "Bad command: my_cat");
 	return 3;
 }
 
@@ -30,12 +43,15 @@ int set(char* var, char* value);
 int print(char* var);
 int run(char* script);
 int badcommandFileDoesNotExist();
+int echo(char* input);
 int my_ls();
 int invalidName();
 int my_mkdir(char* dirname);
 int my_touch(char* filename);
 int my_cd(char* dirname);
+int badcommandDirectoryDoesNotExist();
 int my_cat(char* filename);
+int badcommandCatFileDoesNotExist();
 
 // Interpret commands and their arguments
 int interpreter(char* command_args[], int args_size){
@@ -71,7 +87,11 @@ int interpreter(char* command_args[], int args_size){
 	} else if (strcmp(command_args[0], "run")==0) {
 		if (args_size != 2) return badcommand();
 		return run(command_args[1]);
-	
+
+	} else if (strcmp(command_args[0], "echo")==0) {
+		if (args_size != 2) return badcommand();
+		return echo(command_args[1]);
+
 	} else if (strcmp(command_args[0], "my_ls")==0) {
 		if (args_size != 1) return badcommand();
 		return my_ls();	
@@ -103,12 +123,6 @@ quit			Exits / terminates the shell with “Bye!”\n \
 set VAR STRING		Assigns a value to shell memory\n \
 print VAR		Displays the STRING assigned to VAR\n \
 run SCRIPT.TXT		Executes the file SCRIPT.TXT\n "
-/*my_ls                  Displays all files in current directory\n \
-my_mkdir DIRNAME        Creates a directory with name DIRNAME\n \
-my_touch FILENAME       Creates a new empty file with name FILENAME\n \
-my_cd DIRNAME           Changes current directory to the specified one DIRNAME\n \
-my_cat FILENAME         Displays the content of the file FILENAME to the screen\n "*/
-
 ;
 	printf("%s\n", help_string);
 	return 0;
@@ -162,6 +176,25 @@ int run(char* script){
 	return errCode;
 }
 
+int echo(char* input){
+	if (strlen(input) <= 100){ 
+		if (input[0] != '$'){
+			printf("%s\n", input);
+		} else {
+			char newInput[strlen(input)]; 
+			strcpy(newInput, &input[1]);
+			char* var = mem_get_value(newInput);
+			if (strcmp(var, "Variable does not exist")==0) {
+				printf("%s\n", " ");
+			} else {
+				printf("%s\n", var);
+			}
+		}
+	} else {
+		printf("%s\n", "Input string is too long (>100)");
+	}
+}
+
 int my_ls(){
 	system("ls"); 
 	return 0;
@@ -189,7 +222,10 @@ int my_touch(char* filename){
 
 int my_cd(char* dirname){
 	if (strlen(dirname) <= 100 ) {
-		chdir(dirname);
+		int code = chdir(dirname); //change directory and save return code in variable
+		if (code == -1) { //if return code of chdir is -1, it means directory does not exist 
+			badcommandDirectoryDoesNotExist(); //print error message
+		}
 	} else {
 		invalidName();
 	}
@@ -197,5 +233,13 @@ int my_cd(char* dirname){
 }
 
 int my_cat(char* filename){
+	if (strlen(filename) <= 100 ) {
+		int code = chdir(filename); //change directory and save return code in variable
+		if (code == -1) { //if return code of chdir is -1, it means directory does not exist 
+			badcommandFileDoesNotExist(); //print error message
+		}
+	} else {
+		invalidName();
+	}
 	return 0;
 }
