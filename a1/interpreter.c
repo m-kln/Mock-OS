@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <unistd.h> 
-//#include <sys/stat.h> // these could be useful?
+#include <unistd.h> 
+#include <sys/stat.h> // these could be useful?
 #include "shellmemory.h"
 #include "shell.h"
 
@@ -19,6 +19,11 @@ int badcommandFileDoesNotExist(){
 	return 3;
 }
 
+int invalidName(){
+	printf("%s\n", "Name of directory or file is longer than 100 characters");
+	return 3;
+}
+
 int help();
 int quit();
 int set(char* var, char* value);
@@ -26,6 +31,11 @@ int print(char* var);
 int run(char* script);
 int badcommandFileDoesNotExist();
 int my_ls();
+int invalidName();
+int my_mkdir(char* dirname);
+int my_touch(char* filename);
+int my_cd(char* dirname);
+int my_cat(char* filename);
 
 // Interpret commands and their arguments
 int interpreter(char* command_args[], int args_size){
@@ -65,6 +75,23 @@ int interpreter(char* command_args[], int args_size){
 	} else if (strcmp(command_args[0], "my_ls")==0) {
 		if (args_size != 1) return badcommand();
 		return my_ls();	
+
+	} else if (strcmp(command_args[0], "my_mkdir")==0) {
+		if (args_size != 2) return badcommand();
+		return my_mkdir(command_args[1]);
+
+	} else if (strcmp(command_args[0], "my_touch")==0) {
+		if (args_size != 2) return badcommand();
+		return my_touch(command_args[1]);
+
+	} else if (strcmp(command_args[0], "my_cd")==0) {
+		if (args_size != 2) return badcommand();
+		return my_cd(command_args[1]);
+
+	} else if (strcmp(command_args[0], "my_cat")==0) {
+		if (args_size != 2) return badcommand();
+		return my_cat(command_args[1]);
+
 	} else return badcommand();
 }
 
@@ -76,7 +103,11 @@ quit			Exits / terminates the shell with “Bye!”\n \
 set VAR STRING		Assigns a value to shell memory\n \
 print VAR		Displays the STRING assigned to VAR\n \
 run SCRIPT.TXT		Executes the file SCRIPT.TXT\n \
-my_ls                  Displays all files in current directory\n "
+my_ls                  Displays all files in current directory\n \
+my_mkdir DIRNAME        Creates a directory with name DIRNAME\n \
+my_touch FILENAME       Creates a new empty file with name FILENAME\n \
+my_cd DIRNAME           Changes current directory to the specified one DIRNAME\n \
+my_cat FILENAME         Displays the content of the file FILENAME to the screen\n "
 
 ;
 	printf("%s\n", help_string);
@@ -132,6 +163,39 @@ int run(char* script){
 }
 
 int my_ls(){
-	system("ls");
+	system("ls"); 
+	return 0;
+}
+
+int my_mkdir(char* dirname){
+	if (strlen(dirname) <= 100 ) {
+		mkdir(dirname, S_IRWXU); //S_IRWXU: allows read, write, execute permissions for the user
+	} else {
+		invalidName();
+	}
+	return 0;
+}
+
+int my_touch(char* filename){
+	if (strlen(filename) <= 100 ) {
+		FILE *file;
+		file = fopen(filename, "w+"); //mode w+: opens file for reading and writing. If file does not exist, it creates a new one. 
+		fclose(file);
+	} else {
+		invalidName();
+	}
+	return 0;
+}
+
+int my_cd(char* dirname){
+	if (strlen(dirname) <= 100 ) {
+		chdir(dirname);
+	} else {
+		invalidName();
+	}
+	return 0;
+}
+
+int my_cat(char* filename){
 	return 0;
 }
