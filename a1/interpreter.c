@@ -25,6 +25,7 @@ int set(char* var, char* value);
 int print(char* var);
 int run(char* script);
 int badcommandFileDoesNotExist();
+int my_ls();
 
 // Interpret commands and their arguments
 int interpreter(char* command_args[], int args_size){
@@ -61,6 +62,9 @@ int interpreter(char* command_args[], int args_size){
 		if (args_size != 2) return badcommand();
 		return run(command_args[1]);
 	
+	} else if (strcmp(command_args[0], "my_ls")==0) {
+		if (args_size != 1) return badcommand();
+		return my_ls();	
 	} else return badcommand();
 }
 
@@ -71,7 +75,10 @@ help			Displays all the commands\n \
 quit			Exits / terminates the shell with “Bye!”\n \
 set VAR STRING		Assigns a value to shell memory\n \
 print VAR		Displays the STRING assigned to VAR\n \
-run SCRIPT.TXT		Executes the file SCRIPT.TXT\n ";
+run SCRIPT.TXT		Executes the file SCRIPT.TXT\n \
+my_ls                  Displays all files in current directory\n "
+
+;
 	printf("%s\n", help_string);
 	return 0;
 }
@@ -122,4 +129,9 @@ int run(char* script){
     fclose(p);
 
 	return errCode;
+}
+
+int my_ls(){
+	system("ls");
+	return 0;
 }
