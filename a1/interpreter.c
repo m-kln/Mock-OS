@@ -6,7 +6,7 @@
 #include "shellmemory.h"
 #include "shell.h"
 
-int MAX_ARGS_SIZE = 3;
+int MAX_ARGS_SIZE = 7;
 
 int badcommand(){
 	printf("%s\n", "Unknown Command");
@@ -16,6 +16,11 @@ int badcommand(){
 // For run command only
 int badcommandFileDoesNotExist(){
 	printf("%s\n", "Bad command: File not found");
+	return 3;
+}
+
+int badcommandSet(){
+	printf("%s\n", "Bad command: set");
 	return 3;
 }
 
@@ -43,6 +48,7 @@ int set(char* var, char* value);
 int print(char* var);
 int run(char* script);
 int badcommandFileDoesNotExist();
+int badcommandSet();
 int echo(char* input);
 int my_ls();
 int invalidName();
@@ -77,8 +83,23 @@ int interpreter(char* command_args[], int args_size){
 
 	} else if (strcmp(command_args[0], "set")==0) {
 		//set
-		if (args_size != 3) return badcommand();	
-		return set(command_args[1], command_args[2]);
+		if (args_size < 3 || args_size > 7) return badcommandSet();
+
+		char input[500];
+		strcpy(input, command_args[2]);
+		if (args_size > 3) {
+			for (int i = 3; i < args_size ; i++){
+				//printf("Step i: %d\n", i);
+				//printf("Arg: %s\n", command_args[i]);
+				//printf("before space: %s\n", input);
+				strcat(input, " ");
+				//printf("after space: %s\n", input);
+				strcat(input, command_args[i]);
+				//printf("input: %s\n", input);
+			}
+		}
+		//printf("%s\n", input);
+		return set(command_args[1], input);
 	
 	} else if (strcmp(command_args[0], "print")==0) {
 		if (args_size != 2) return badcommand();
@@ -134,12 +155,13 @@ int quit(){
 }
 
 int set(char* var, char* value){
-	char *link = "=";
-	char buffer[1000];
-	strcpy(buffer, var);
-	strcat(buffer, link);
-	strcat(buffer, value);
 
+	//char *link = "=";
+	//char buffer[1000];
+	//strcpy(buffer, var);
+	//strcat(buffer, link);
+	//strcat(buffer, value);
+	
 	mem_set_value(var, value);
 
 	return 0;
@@ -177,26 +199,26 @@ int run(char* script){
 }
 
 int echo(char* input){
-	if (strlen(input) <= 100){ 
-		if (input[0] != '$'){
+	if (strlen(input) <= 100){  //check that token string <= 100 characters
+		if (input[0] != '$'){ //if first char of string is not $ , then print token string to output
 			printf("%s\n", input);
 		} else {
-			char newInput[strlen(input)]; 
-			strcpy(newInput, &input[1]);
-			char* var = mem_get_value(newInput);
-			if (strcmp(var, "Variable does not exist")==0) {
+			char newInput[strlen(input)];  //initialize a new string
+			strcpy(newInput, &input[1]); //copy the input string characters after the '$' symbol into the new string variable
+			char* var = mem_get_value(newInput); //look for the variable in the shell memory
+			if (strcmp(var, "Variable does not exist")==0) { //if the variable is not found in the memory, print empty string
 				printf("%s\n", " ");
-			} else {
+			} else { //if the var is in shell memory, print the associated value
 				printf("%s\n", var);
 			}
 		}
 	} else {
-		printf("%s\n", "Input string is too long (>100)");
+		printf("%s\n", "Input string is too long (>100 characters)");
 	}
 }
 
 int my_ls(){
-	system("ls"); 
+	system("ls"); //use system command to invoke the OS's ls command
 	return 0;
 }
 
