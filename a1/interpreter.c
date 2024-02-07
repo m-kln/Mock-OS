@@ -64,11 +64,11 @@ int interpreter(char* command_args[], int args_size){
 	int i;
 
 	if ( args_size < 1 || args_size > MAX_ARGS_SIZE){
-		if (strcmp(command_args[0], "set")==0){ 
-			return badcommandSet();
-		} else {
+		//if (strcmp(command_args[0], "set")==0){ 
+		//	return badcommandSet();
+		//} else {
 			return badcommand();
-		}
+		//}
 	}
 
 	for ( i=0; i<args_size; i++){ //strip spaces new line etc
