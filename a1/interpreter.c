@@ -63,16 +63,16 @@ int badcommandCatFileDoesNotExist();
 int interpreter(char* command_args[], int args_size){
 	int i;
 
-	if ( args_size < 1 || args_size > MAX_ARGS_SIZE){
-		//if (strcmp(command_args[0], "set")==0){ 
-		//	return badcommandSet();
-		//} else {
-			return badcommand();
-		//}
-	}
-
 	for ( i=0; i<args_size; i++){ //strip spaces new line etc
 		command_args[i][strcspn(command_args[i], "\r\n")] = 0;
+	}
+
+	if ( args_size < 1 || args_size > MAX_ARGS_SIZE){
+		if (strcmp(command_args[0], "set")==0){ 
+			return badcommandSet();
+		} else {
+			return badcommand();
+		}
 	}
 
 	if (strcmp(command_args[0], "help")==0){
