@@ -92,16 +92,10 @@ int interpreter(char* command_args[], int args_size){
 		strcpy(input, command_args[2]);
 		if (args_size > 3) {
 			for (int i = 3; i < args_size ; i++){
-				//printf("Step i: %d\n", i);
-				//printf("Arg: %s\n", command_args[i]);
-				//printf("before space: %s\n", input);
 				strcat(input, " ");
-				//printf("after space: %s\n", input);
 				strcat(input, command_args[i]);
-				//printf("input: %s\n", input);
 			}
 		}
-		//printf("%s\n", input);
 		return set(command_args[1], input);
 	
 	} else if (strcmp(command_args[0], "print")==0) {
@@ -259,9 +253,16 @@ int my_cd(char* dirname){
 
 int my_cat(char* filename){
 	if (strlen(filename) <= 100 ) {
-		int code = chdir(filename); //change directory and save return code in variable
-		if (code == -1) { //if return code of chdir is -1, it means directory does not exist 
-			badcommandFileDoesNotExist(); //print error message
+		FILE *f = fopen(filename, "r"); //if file exists, data can be read from it
+		if (f == NULL) { //file could not open
+			badcommandCatFileDoesNotExist(); //print error message
+		} else {
+			char content;
+			do {
+				content = fgetc(f); //fgetc returns every character in the file sequentially until end of the file (EOF)
+				printf("%c", content);
+			} while (content != EOF); //if EOF has not been reached yet
+			fclose(f);
 		}
 	} else {
 		invalidName();
