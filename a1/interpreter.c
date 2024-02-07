@@ -8,8 +8,12 @@
 
 int MAX_ARGS_SIZE = 7;
 
-int badcommand(){
-	printf("%s\n", "Unknown Command");
+int badcommand(char* command_args[]){
+	if (strcmp(command_args[0], "set")==0) {
+		printf("%s\n", "Bad command: set");
+	} else {
+		printf("%s\n", "Unknown Command");
+	}
 	return 1;
 }
 
@@ -63,26 +67,22 @@ int badcommandCatFileDoesNotExist();
 int interpreter(char* command_args[], int args_size){
 	int i;
 
+	if ( args_size < 1 || args_size > MAX_ARGS_SIZE){
+		return badcommand(command_args);
+	}
+
 	for ( i=0; i<args_size; i++){ //strip spaces new line etc
 		command_args[i][strcspn(command_args[i], "\r\n")] = 0;
 	}
 
-	if ( args_size < 1 || args_size > MAX_ARGS_SIZE){
-		if (strcmp(command_args[0], "set")==0){ 
-			return badcommandSet();
-		} else {
-			return badcommand();
-		}
-	}
-
 	if (strcmp(command_args[0], "help")==0){
 	    //help
-	    if (args_size != 1) return badcommand();
+	    if (args_size != 1) return badcommand(command_args);
 	    return help();
 	
 	} else if (strcmp(command_args[0], "quit")==0) {
 		//quit
-		if (args_size != 1) return badcommand();
+		if (args_size != 1) return badcommand(command_args);
 		return quit();
 
 	} else if (strcmp(command_args[0], "set")==0) {
@@ -106,38 +106,38 @@ int interpreter(char* command_args[], int args_size){
 		return set(command_args[1], input);
 	
 	} else if (strcmp(command_args[0], "print")==0) {
-		if (args_size != 2) return badcommand();
+		if (args_size != 2) return badcommand(command_args);
 		return print(command_args[1]);
 	
 	} else if (strcmp(command_args[0], "run")==0) {
-		if (args_size != 2) return badcommand();
+		if (args_size != 2) return badcommand(command_args);
 		return run(command_args[1]);
 
 	} else if (strcmp(command_args[0], "echo")==0) {
-		if (args_size != 2) return badcommand();
+		if (args_size != 2) return badcommand(command_args);
 		return echo(command_args[1]);
 
 	} else if (strcmp(command_args[0], "my_ls")==0) {
-		if (args_size != 1) return badcommand();
+		if (args_size != 1) return badcommand(command_args);
 		return my_ls();	
 
 	} else if (strcmp(command_args[0], "my_mkdir")==0) {
-		if (args_size != 2) return badcommand();
+		if (args_size != 2) return badcommand(command_args);
 		return my_mkdir(command_args[1]);
 
 	} else if (strcmp(command_args[0], "my_touch")==0) {
-		if (args_size != 2) return badcommand();
+		if (args_size != 2) return badcommand(command_args);
 		return my_touch(command_args[1]);
 
 	} else if (strcmp(command_args[0], "my_cd")==0) {
-		if (args_size != 2) return badcommand();
+		if (args_size != 2) return badcommand(command_args);
 		return my_cd(command_args[1]);
 
 	} else if (strcmp(command_args[0], "my_cat")==0) {
-		if (args_size != 2) return badcommand();
+		if (args_size != 2) return badcommand(command_args);
 		return my_cat(command_args[1]);
 
-	} else return badcommand();
+	} else return badcommand(command_args);
 }
 
 int help(){
