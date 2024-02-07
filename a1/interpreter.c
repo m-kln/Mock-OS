@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h> 
-#include <sys/stat.h> // these could be useful?
+#include <sys/stat.h> 
 #include "shellmemory.h"
 #include "shell.h"
 
-int MAX_ARGS_SIZE = 7;
+int MAX_ARGS_SIZE = 7; //the command set takes the most args (max 7 if the input contains 5 alphanumeric tokens)
 
 int badcommand(){
 	printf("%s\n", "Unknown Command");
@@ -19,7 +19,8 @@ int badcommandFileDoesNotExist(){
 	return 3;
 }
 
-int badcommandSet(){
+//for set command
+int badcommandSet(){ 
 	printf("%s\n", "Bad command: set");
 	return 3;
 }
@@ -31,13 +32,13 @@ int invalidName(){ //error message when file or directory name length is >100 ch
 }
 
 //for my_cd
-int badcommandDirectoryDoesNotExist(){ //error message when indicated directory does not exist 
+int badcommandCD(){ 
 	printf("%s\n", "Bad command: my_cd");
 	return 3;
 }
 
 //for my_cat
-int badcommandCatFileDoesNotExist(){ //error message when indicated file does not exist 
+int badcommandCat(){ 
 	printf("%s\n", "Bad command: my_cat");
 	return 3;
 }
@@ -57,16 +58,16 @@ int my_touch(char* filename);
 int my_cd(char* dirname);
 int badcommandDirectoryDoesNotExist();
 int my_cat(char* filename);
-int badcommandCatFileDoesNotExist();
+int badcommandCat();
 
 // Interpret commands and their arguments
 int interpreter(char* command_args[], int args_size){
 	int i;
 
-	if ( args_size < 1 ) {
+	if ( args_size < 1 ) { 
 		return badcommand();
-	}
-	if (args_size > MAX_ARGS_SIZE && strcmp(command_args[0], "set")!=0 ) {
+	} //separated above and below checks to avoid segmentation fault
+	if (args_size > MAX_ARGS_SIZE && strcmp(command_args[0], "set")!=0 ) { //the check for the set command will be handled after
 		return badcommand();
 	}
 
@@ -86,24 +87,26 @@ int interpreter(char* command_args[], int args_size){
 
 	} else if (strcmp(command_args[0], "set")==0) {
 		//set
-		if (args_size < 3 || args_size > 7) return badcommandSet();
+		if (args_size < 3 || args_size > 7) return badcommandSet(); //verify number of args for set command
 
-		char input[500];
-		strcpy(input, command_args[2]);
-		if (args_size > 3) {
-			for (int i = 3; i < args_size ; i++){
-				strcat(input, " ");
-				strcat(input, command_args[i]);
+		//Create the input string for the set function which contains all tokens separated by a space in a single string
+
+		char input[500]; //1 token has max 100 chars so max 5 tokens -> 500 chars
+		strcpy(input, command_args[2]); //copy first token into input var
+		if (args_size > 3) { //if there is only one token, no need to do below code since there are no spaces to consider
+			for (int i = 3; i < args_size ; i++){ //i represents the index for command_args. Starts at 2nd token with index 3
+				strcat(input, " "); //concatenate a space next to current value in input
+				strcat(input, command_args[i]); //concatenate the token
 			}
-		}
+		} 
 		return set(command_args[1], input);
 	
 	} else if (strcmp(command_args[0], "print")==0) {
 		if (args_size != 2) return badcommand();
 		return print(command_args[1]);
-	
+
 	} else if (strcmp(command_args[0], "run")==0) {
-		if (args_size != 2) return badcommand();
+		if (args_size != 2) return badcommandFileDoesNotExist();
 		return run(command_args[1]);
 
 	} else if (strcmp(command_args[0], "echo")==0) {
@@ -123,11 +126,11 @@ int interpreter(char* command_args[], int args_size){
 		return my_touch(command_args[1]);
 
 	} else if (strcmp(command_args[0], "my_cd")==0) {
-		if (args_size != 2) return badcommand();
+		if (args_size != 2) return badcommandCD();
 		return my_cd(command_args[1]);
 
 	} else if (strcmp(command_args[0], "my_cat")==0) {
-		if (args_size != 2) return badcommand();
+		if (args_size != 2) return badcommandCat();
 		return my_cat(command_args[1]);
 
 	} else return badcommand();
@@ -166,7 +169,7 @@ int set(char* var, char* value){
 }
 
 int print(char* var){
-	printf("%s\n", mem_get_value(var)); 
+	printf("%s\n", mem_get_value(var));  
 	return 0;
 }
 
@@ -200,7 +203,7 @@ int echo(char* input){
 		if (input[0] != '$'){ //if first char of string is not $ , then print token string to output
 			printf("%s\n", input);
 		} else {
-			char newInput[strlen(input)];  //initialize a new string
+			char newInput[strlen(input)];  //initialize a new string with the same length as the input
 			strcpy(newInput, &input[1]); //copy the input string characters after the '$' symbol into the new string variable
 			char* var = mem_get_value(newInput); //look for the variable in the shell memory
 			if (strcmp(var, "Variable does not exist")==0) { //if the variable is not found in the memory, print empty string
@@ -243,7 +246,7 @@ int my_cd(char* dirname){
 	if (strlen(dirname) <= 100 ) {
 		int code = chdir(dirname); //change directory and save return code in variable
 		if (code == -1) { //if return code of chdir is -1, it means directory does not exist 
-			badcommandDirectoryDoesNotExist(); //print error message
+			badcommandCD(); //print error message
 		}
 	} else {
 		invalidName();
@@ -255,14 +258,14 @@ int my_cat(char* filename){
 	if (strlen(filename) <= 100 ) {
 		FILE *f = fopen(filename, "r"); //if file exists, data can be read from it
 		if (f == NULL) { //file could not open
-			badcommandCatFileDoesNotExist(); //print error message
+			badcommandCat(); //print error message
 		} else {
 			char content;
 			do {
 				content = fgetc(f); //fgetc returns every character in the file sequentially until end of the file (EOF)
-				printf("%c", content);
+				printf("%c", content); //display every character
 			} while (content != EOF); //if EOF has not been reached yet
-			fclose(f);
+			fclose(f); //close the file
 		}
 	} else {
 		invalidName();
