@@ -11,7 +11,7 @@
  * job_length_score: for EXEC AGING use only, stores the job length score
  */
 
-typedef struct PAGE PAGE;
+//typedef struct PAGE PAGE;
 
 //struct PAGE
 //{
@@ -29,6 +29,8 @@ typedef struct
     int start;
     int end;
     int job_length_score;
+    //int pagetable[10];
+    //int num_pages;
 }PCB;
 
 int generatePID();

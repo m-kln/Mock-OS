@@ -21,5 +21,6 @@ PCB* makePCB(int start, int end){
     newPCB->priority = false;
     //todo add page table : array of pages PAGE ** page_table
     //int number_of_pages
+    //newPCB->
     return newPCB;
 }

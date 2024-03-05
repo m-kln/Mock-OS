@@ -123,6 +123,7 @@ void printShellMemory(){
  * 
  * Stores the entirety of the program into shell mem, assuming there is no partition between frame and var store
  */
+
 int load_file(FILE* fp, int* pStart, int* pEnd, char* filename)
 {
 	char *line; //each line read from the file 
@@ -202,33 +203,28 @@ int load_file(FILE* fp, int* pStart, int* pEnd, char* filename)
     return error_code;
 }
 
-int load_page(FILE* fp, int* pStart, int* pEnd, char* filename)
-{
-	char *line; //each line read from the file 
-    size_t i; //size_t : unsigned int (good for index)
-    int error_code = 0;
-	//bool hasSpaceLeft = false;
-	bool flag = true; //set to true to allow while loop to execute at least once
-	i=varmemsize; //starts from first index of framestore
-	size_t candidate;
-	size_t frame_index;
-
-	for (i; i < SHELL_MEM_LENGTH; i += 3){
+int find_free_frame() {
+	int index = -1;
+	for (int i = varmemsize; i < SHELL_MEM_LENGTH; i += 3){
 		if(strcmp(shellmemory[i].var,"none") == 0){
-			*pStart = (int)i; //as soon as an empty slot is found, set the start index to current i
-				//hasSpaceLeft = true;
+			index = i;
 			break;
 		}
 	}
-	candidate = i; //remember location of empty slot
-	printf("candidate in loop: %d\n", candidate);
-		//finds a non empty slot and sets flag to true (ignore)
-		
-	//^ after while loop, nothing set in memory yet
-	printf("candidate after loop: %d\n", candidate);
-	i = candidate;
+	return index;
+}
+
+int load_page(FILE* fp, int* pStart, int* pEnd, char* filename)
+{
+	char *line; //each line read from the file 
+    int error_code = 0;
+	size_t candidate;
+	size_t frame_index;
+
+	*pStart = (int) find_free_frame();
+	candidate = *pStart; //remember location of empty slot
+	printf("start after loop: %d\n", candidate);
 	frame_index = 0;
-	printf("i after loop: %d\n", i);
 	printf("frame: %d\n", frame_index);
 	printShellMemory();
 	//shell memory is full
@@ -238,7 +234,7 @@ int load_page(FILE* fp, int* pStart, int* pEnd, char* filename)
 	//}
     
 	//load each line of file in memory 
-    for (size_t j = i; j < i + 3; j++){
+    for (size_t j = candidate; j < candidate + 3; j++){
 		printf("j at loop: %d\n", j);
         //if(feof(fp))
         //{
@@ -278,6 +274,7 @@ int load_page(FILE* fp, int* pStart, int* pEnd, char* filename)
 	frame_index++;
     return error_code;
 }
+
 
 char * mem_get_value_at_line(int index){
 	if(index<0 || index > SHELL_MEM_LENGTH) return NULL; 

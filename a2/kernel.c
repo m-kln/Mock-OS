@@ -24,7 +24,7 @@ int process_initialize(char *filename){
     if(fp == NULL){
 		return FILE_DOES_NOT_EXIST;
     }
-    int error_code = load_file(fp, start, end, filename);
+    int error_code = load_page(fp, start, end, filename);
     if(error_code != 0){
         fclose(fp);
         return FILE_ERROR;
