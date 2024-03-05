@@ -39,7 +39,7 @@ int process_initialize(char *filename){
     return 0;
 }
 
-int shell_process_initialize(){
+int shell_process_initialize(){ //ignore 
     //Note that "You can assume that the # option will only be used in batch mode."
     //So we know that the input is a file, we can directly load the file into ram
     int* start = (int*)malloc(sizeof(int));
@@ -60,9 +60,9 @@ int shell_process_initialize(){
     return 0;
 }
 
-bool execute_process(QueueNode *node, int quanta){
+bool execute_process(QueueNode *node, int quanta){ //quanta: nbr of instr a process will run before switching to another process and running those instr
     char *line = NULL;
-    PCB *pcb = node->pcb;
+    PCB *pcb = node->pcb; //the arrow -> allows access to members of a struct through a ptr
     for(int i=0; i<quanta; i++){
         line = mem_get_value_at_line(pcb->PC++);
         in_background = true;

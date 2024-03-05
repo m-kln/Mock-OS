@@ -44,6 +44,7 @@ int my_mkdir(char* dirname);
 int my_touch(char* filename);
 int my_cd(char* dirname);
 int exec(char *fname1, char *fname2, char *fname3); //, char* policy, bool background, bool mt);
+char* copy_file_back(char *filename, char *path);
 
 // Interpret commands and their arguments
 int interpreter(char* command_args[], int args_size){
@@ -154,6 +155,7 @@ run SCRIPT.TXT		Executes the file SCRIPT.TXT\n ";
 int quit(){
 	printf("%s\n", "Bye!");
 	ready_queue_destory();
+	system("rm -rf ./backing_store"); //remove the backing store dir 
 	exit(0);
 }
 
@@ -239,20 +241,28 @@ int run(char* script){
 
 int exec(char *fname1, char *fname2, char *fname3) {
 	int error_code = 0;
+	//copy files to backing store	
+	char path1[50];
+	char path2[50];
+	char path3[50];
+
 	if(fname1 != NULL){
-        error_code = process_initialize(fname1);
+		char* f1 = copy_file_back(fname1, path1);
+		error_code = process_initialize(f1);
 		if(error_code != 0){
 			return handle_error(error_code);
 		}
     }
     if(fname2 != NULL){
-        error_code = process_initialize(fname2);
+		char* f2 = copy_file_back(fname2, path2);
+		error_code = process_initialize(f2);
 		if(error_code != 0){
 			return handle_error(error_code);
 		}
     }
     if(fname3 != NULL){
-        error_code = process_initialize(fname3);
+		char* f3 = copy_file_back(fname3, path3);
+		error_code = process_initialize(f3);
 		if(error_code != 0){
 			return handle_error(error_code);
 		}
@@ -261,4 +271,17 @@ int exec(char *fname1, char *fname2, char *fname3) {
 	if(error_code != 0){
 		return handle_error(error_code);
 	}
+}
+
+char* copy_file_back(char *filename, char *path) {
+	sprintf(path, "./backing_store/%s", filename);
+	FILE *src = fopen(filename, "r");
+	FILE *dst = fopen(path, "w");
+	char c;
+	while ((c = fgetc(src)) != EOF) {
+		fputc(c, dst);
+	}
+	fclose(src);
+	fclose(dst);
+	return path;
 }

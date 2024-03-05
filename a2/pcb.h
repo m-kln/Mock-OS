@@ -10,6 +10,17 @@
  * end: the last line in shell memory that belongs to this task
  * job_length_score: for EXEC AGING use only, stores the job length score
  */
+
+typedef struct PAGE PAGE;
+
+//struct PAGE
+//{
+ //   int index[3];
+   // int valid_bits[3];
+   // int page_index;
+   // int page_pid;
+//}PAGE;
+
 typedef struct
 {
     bool priority;

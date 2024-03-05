@@ -11,7 +11,15 @@
 int MAX_USER_INPUT = 1000;
 int parseInput(char ui[]);
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) { 
+
+    //Remove the backing store dir and contents if it exists 
+    system("rm -rf ./backing_store"); //getcwd?
+
+    //Create backing store dir upon shell initialization
+    system("mkdir ./backing_store");
+   
+
 	printf("%s\n", "Shell v2.0\n");
 
 	char prompt = '$';  				// Shell prompt
