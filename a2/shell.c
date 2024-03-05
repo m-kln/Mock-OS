@@ -21,6 +21,7 @@ int main(int argc, char *argv[]) {
    
 
 	printf("%s\n", "Shell v2.0\n");
+    printf("Frame Store Size = %d; Variable Store Size = %d\n", framesize, varmemsize);
 
 	char prompt = '$';  				// Shell prompt
 	char userInput[MAX_USER_INPUT];		// user's input stored here
