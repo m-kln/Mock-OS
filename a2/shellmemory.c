@@ -223,10 +223,10 @@ int load_page(FILE* fp, int* pStart, int* pEnd, char* filename)
 
 	*pStart = (int) find_free_frame();
 	candidate = *pStart; //remember location of empty slot
-	printf("start after loop: %d\n", candidate);
+	//printf("start after loop: %d\n", candidate);
 	frame_index = 0;
-	printf("frame: %d\n", frame_index);
-	printShellMemory();
+	//printf("frame: %d\n", frame_index);
+	//printShellMemory();
 	//shell memory is full
 	//if(hasSpaceLeft == 0){
 	//	error_code = 21;
@@ -235,7 +235,7 @@ int load_page(FILE* fp, int* pStart, int* pEnd, char* filename)
     
 	//load each line of file in memory 
     for (size_t j = candidate; j < candidate + 3; j++){
-		printf("j at loop: %d\n", j);
+		//printf("j at loop: %d\n", j);
         //if(feof(fp))
         //{
 			//printf("j at eof: %d\n", j);
@@ -243,17 +243,17 @@ int load_page(FILE* fp, int* pStart, int* pEnd, char* filename)
            // break;
         //}else{
 		line = calloc(1, framesize); //calloc is good for when u have elements that start with default values
-		printf("line after calloc: %s\n", line);
+		//printf("line after calloc: %s\n", line);
 		if (fgets(line, framesize, fp) == NULL) //fgets reads until either mem-length-1 or \n or EOF
 		{
 			continue;
 		}
-		printf("line after fgets: %s\n", line);
-		printf("frame: %d\n", frame_index);
+		//printf("line after fgets: %s\n", line);
+		//printf("frame: %d\n", frame_index);
 		shellmemory[j].var = strdup(filename); //not using strndup cuz files are usually null terminated
         shellmemory[j].value = strndup(line, strlen(line)); 
-		printShellMemory();
-		printf("frame: %d\n", frame_index);
+		//printShellMemory();
+		//printf("frame: %d\n", frame_index);
 			//strndup duplicates a specified nbr of chars from start of a string
 			//strlen does not include null terminator. Good to use here since we want to avoid unneeded chars 
 		free(line);
@@ -270,7 +270,7 @@ int load_page(FILE* fp, int* pStart, int* pEnd, char* filename)
     //	}
 	//	return error_code;
 	//}
-	printShellMemory();
+	//printShellMemory();
 	frame_index++;
     return error_code;
 }
