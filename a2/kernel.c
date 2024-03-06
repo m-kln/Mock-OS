@@ -32,7 +32,7 @@ int process_initialize(char *filename){
         newPCB->current_page++;
     }
     newPCB->PC = find_PC(newPCB);
-    printf("PC: %d\n", newPCB->PC);
+    //printf("PC: %d\n", newPCB->PC);
     if(error_code != 0){
         fclose(fp);
         return FILE_ERROR;
@@ -50,7 +50,7 @@ int process_initialize(char *filename){
 
 int find_PC(PCB *pcb){
     int pc;
-    printf("current page: %d, frame: %d\n", pcb->current_page, pcb->pagetable[pcb->current_page]);
+    //printf("current page: %d, frame: %d\n", pcb->current_page, pcb->pagetable[pcb->current_page]);
     int frame = pcb->pagetable[0];
     pc = varmemsize + (frame - 1)*3;
     return pc;

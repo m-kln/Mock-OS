@@ -258,7 +258,7 @@ int find_free_frame() {
 		printf("frame index end: %d\n", index+2);
 		mem_free_lines_frame(index, index+2);
 	}
-	printf("frame index: %d\n", index);
+	//printf("frame index: %d\n", index);
 	return index;
 }
 
@@ -275,7 +275,7 @@ int load_page(FILE *fp, char *filename, PCB *pcb) {
     // Load the lines from the file into shellmemory
 	//for (int p = 0; p< 2; p++){
 		frame_index = find_free_frame();
-		printf("frame index: %d\n", frame_index);
+		//printf("frame index: %d\n", frame_index);
 		
 		initial_frame = frame_index;
 
@@ -303,17 +303,17 @@ int load_page(FILE *fp, char *filename, PCB *pcb) {
 		int frame_number = ((initial_frame - varmemsize) / 3) + 1;
 		pcb->pagetable[pcb->current_page] = frame_number; 
 		pcb->num_pages++;
-		printf("frame: %d, current_page: %d, number of pages: %d\n", frame_number, pcb->current_page, pcb->num_pages);
+		//printf("frame: %d, current_page: %d, number of pages: %d\n", frame_number, pcb->current_page, pcb->num_pages);
 		//pcb->current_page++;
 	//}
 
     // Calculate the ending position in frame store
 	pcb->line_offset = initial_frame - fstart;
-	printf("line offset: %d\n", pcb->line_offset);
+	//printf("line offset: %d\n", pcb->line_offset);
 	//pcb->start = fstart;
 	pcb->start = initial_frame;
     pcb->end = frame_index - 1;
-	printShellMemory();
+	//printShellMemory();
 
 	//printf("pcb start: %d, pcb end: %d\n", pcb->start, pcb->end);
 
@@ -349,7 +349,7 @@ void mem_free_lines_between(int start, int end){
 }
 
 void mem_free_lines_frame(int start, int end){
-	printf("start: %d, end: %d\n", start, end);
+	//printf("start: %d, end: %d\n", start, end);
 	for (int i=start; i<=end; i++){
 		shellmemory[i].var = "none";
 		shellmemory[i].value = "none";
