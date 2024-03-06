@@ -24,18 +24,30 @@ int process_initialize(char *filename){
     if(fp == NULL){
 		return FILE_DOES_NOT_EXIST;
     }
-    int error_code = load_page(fp, start, end, filename);
+   // printf("im in kernel before load\n ");
+    //int error_code = load_file(fp, start, end, filename);
+    /*int error_code = load_page(fp, filename, start, end, newPCB);
+    if(error_code != 0){
+        fclose(fp);
+        return FILE_ERROR;
+    }*/
+    //printf("im in kernel before load and before pcb\n");
+    //PCB* newPCB = makePCB(*start, *end);
+    PCB* newPCB = makePCB();
+    int error_code = load_page(fp, filename, newPCB);
     if(error_code != 0){
         fclose(fp);
         return FILE_ERROR;
     }
-    PCB* newPCB = makePCB(*start,*end);
+
     QueueNode *node = malloc(sizeof(QueueNode));
     node->pcb = newPCB;
 
     ready_queue_add_to_tail(node);
 
     fclose(fp);
+    //printf("im in kernel after pcb\n");
+    //printf("start: %d, end %d\n", newPCB->start, newPCB->end);
     return 0;
 }
 
@@ -148,6 +160,7 @@ void *scheduler_AGING(){
 }
 
 void *scheduler_RR(void *arg){
+    //printf("im in kernel inside RR\n");
     int quanta = ((int *) arg)[0];
     QueueNode *cur;
     while(true){
@@ -164,6 +177,7 @@ void *scheduler_RR(void *arg){
 }
 
 int schedule_by_policy(char* policy){ //, bool mt){
+    //printf("im in kernel inside schedule at start\n");
     if(strcmp(policy, "FCFS")!=0 && strcmp(policy, "SJF")!=0 && 
         strcmp(policy, "RR")!=0 && strcmp(policy, "AGING")!=0 && strcmp(policy, "RR30")!=0){
             return SCHEDULING_ERROR;
@@ -176,6 +190,7 @@ int schedule_by_policy(char* policy){ //, bool mt){
     }else if(strcmp("SJF",policy)==0){
         scheduler_SJF();
     }else if(strcmp("RR",policy)==0){
+        //printf("im in kernel inside schedule at RR\n");
         arg[0] = 2;
         scheduler_RR((void *) arg);
     }else if(strcmp("AGING",policy)==0){

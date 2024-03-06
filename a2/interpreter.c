@@ -240,6 +240,7 @@ int run(char* script){
 }
 
 int exec(char *fname1, char *fname2, char *fname3) {
+	//printf("im in start of exec\n");
 	int error_code = 0;
 	//copy files to backing store	
 	char path1[50];
@@ -247,8 +248,12 @@ int exec(char *fname1, char *fname2, char *fname3) {
 	char path3[50];
 
 	if(fname1 != NULL){
+		//printf("im in exec before copy\n");
 		char* f1 = copy_file_back(fname1, path1);
+		//printf("im in exec after copy before process\n");
 		error_code = process_initialize(f1);
+		//printf("im in exec after process\n");
+		//printf("im in exec after process with error: %d\n ", error_code);
 		if(error_code != 0){
 			return handle_error(error_code);
 		}
@@ -267,7 +272,9 @@ int exec(char *fname1, char *fname2, char *fname3) {
 			return handle_error(error_code);
 		}
     } 
+	//printf("im in exec before schedule\n ");
 	error_code = schedule_by_policy("RR");
+	//printf("im in exec after schedule with error %d\n", error_code);
 	if(error_code != 0){
 		return handle_error(error_code);
 	}

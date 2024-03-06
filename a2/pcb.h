@@ -20,6 +20,7 @@
    // int page_index;
    // int page_pid;
 //}PAGE;
+#define MAX_PAGES framesize/3
 
 typedef struct
 {
@@ -29,10 +30,11 @@ typedef struct
     int start;
     int end;
     int job_length_score;
-    //int pagetable[10];
-    //int num_pages;
+    int pagetable[MAX_PAGES];
+    int num_pages;
+    int current_page;
 }PCB;
 
 int generatePID();
-PCB * makePCB(int start, int end);
+PCB * makePCB();
 #endif
