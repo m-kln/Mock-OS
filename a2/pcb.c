@@ -14,7 +14,7 @@ int generatePID(){
 PCB* makePCB(){
     PCB * newPCB = malloc(sizeof(PCB));
     newPCB->pid = generatePID();
-    newPCB->PC = varmemsize; //PC: indicates address of next instruction
+   // newPCB->PC = varmemsize; //PC: indicates address of next instruction
     //newPCB->start  = start;
     //newPCB->end = end;
     newPCB->job_length_score = 1+newPCB->end-newPCB->start;

@@ -35,6 +35,7 @@ int process_initialize(char *filename){
     //PCB* newPCB = makePCB(*start, *end);
     PCB* newPCB = makePCB();
     int error_code = load_page(fp, filename, newPCB);
+    newPCB->PC = newPCB->start;
     if(error_code != 0){
         fclose(fp);
         return FILE_ERROR;
@@ -73,10 +74,13 @@ int shell_process_initialize(){ //ignore
 }
 
 bool execute_process(QueueNode *node, int quanta){ //quanta: nbr of instr a process will run before switching to another process and running those instr
+   // printf("quanta: %d\n", quanta);
     char *line = NULL;
     PCB *pcb = node->pcb; //the arrow -> allows access to members of a struct through a ptr
     for(int i=0; i<quanta; i++){
+       // printf("PC: %d\n", pcb->PC);
         line = mem_get_value_at_line(pcb->PC++);
+        //printf("line: %s\n", line);
         in_background = true;
         if(pcb->priority) {
             pcb->priority = false;

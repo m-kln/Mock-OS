@@ -251,6 +251,7 @@ int load_page(FILE *fp, char *filename, PCB *pcb) {
 		if (frame_index == -1) {
 			//printf("no frames available");
 			error_code = 21;
+			break;
 		}
 
 		for (int i = 0; i < 3; i++) {
@@ -281,142 +282,14 @@ int load_page(FILE *fp, char *filename, PCB *pcb) {
 		pcb->current_page++;
 	}
 
-	/*int frame_number = ((pcb->start - varmemsize) / 3) + 1;
-	pcb->pagetable[pcb->current_page] = frame_number; 
-	pcb->num_pages++;
-	printf("frame: %d, current_page: %d, number of pages: %d\n", frame_number, pcb->current_page, pcb->num_pages);*/
-
     // Calculate the ending position in frame store
 	pcb->start = fstart;
     pcb->end = frame_index - 1;
 
+	//printf("pcb start: %d, pcb end: %d\n", pcb->start, pcb->end);
+
     return 0; // Success
 }
-
-/*int load_page(FILE* fp, char* filename, int* pStart, int* pEnd ) {
-	char *line; //each line read from the file 
-    int error_code = 0;
-	int current_page = 0;
-	int curr_lines = 0;
-	int lines_read = 0;
-	int total_lines = countLines(fp);
-	int frame_number;
-	
-	int frame_store_index = find_free_frame();
-	if (frame_store_index == -1) {
-		printf("no frames available");
-		error_code = 21;
-	}
-	printf("im in else before for loop in load\n");
-	
-	*pStart = (int) frame_store_index;
-	printf("start is set\n");
-	line = calloc(1, SHELL_MEM_LENGTH);
-	printf("line is calloced\n");
-	if (line == NULL) printf("line is null\n");
-	printf("before loop\n");
-	while (fgets(line, SHELL_MEM_LENGTH, fp) != NULL) {
-		printf("line after fgets: %s\n", line);
-        shellmemory[frame_store_index].var = strdup(filename); // Store filename
-        shellmemory[frame_store_index].value = strndup(line, strlen(line)); // Store line
-		printShellMemory();
-        lines_read++;
-        curr_lines++;
-		printf("Current lines read:  %d, total lines read: %d\n", curr_lines, lines_read);
-        if (curr_lines == FRAME_SIZE || lines_read == total_lines) {
-            *pEnd = frame_store_index; // Set the end index
-            frame_store_index = find_free_frame(); // Find the next free frame
-            if (frame_store_index == -1) {
-                printf("No frames available\n");
-                error_code = 21;
-                break;
-            }
-            curr_lines = 0; // Reset line count for the next frame
-        }
-
-        frame_store_index++;
-    }
-
-    free(line); // Free allocated memory
-
-		/*load each line of file in memory 
-		//for (size_t j = frame_store_index; j < SHELL_MEM_LENGTH; j++){
-		//	printf("j at loop: %d\n", j);
-			line = calloc(1, sizeof(char)*100); //calloc is good for when u have elements that start with default values
-			if (fgets(line, sizeof(char)*100, fp) == NULL) //fgets reads until either mem-length-1 or \n or EOF
-			{
-				continue;
-			}
-			printf("line after fgets: %s\n", line);
-			shellmemory[j].var = strdup(filename); //not using strndup cuz files are usually null terminated
-			shellmemory[j].value = strndup(line, strlen(line)); 
-			printShellMemory();
-			//strndup duplicates a specified nbr of chars from start of a string
-			//strlen does not include null terminator. Good to use here since we want to avoid unneeded chars 
-			free(line);
-
-			lines_read++;
-			curr_lines++;
-			printf("Current lines read:  %d, total lines read: %d\n", curr_lines, lines_read);
-			if (lines_read < total_lines){
-				if (curr_lines == FRAME_SIZE){
-					frame_number = ((j - varmemsize) / 3) + 1;
-					//pcb->pagetable[current_page] = frame_number; 
-					printf("frame: %d, current_page: %d\n", frame_number, current_page);
-					//current_page++;
-					*pEnd = (int) j;
-					frame_store_index = find_free_frame();
-					if (frame_store_index == -1) {
-						printf("no frames available\n");
-						error_code = 21;
-						break;
-					}
-					j=frame_store_index-1;
-					curr_lines = 0;
-				}
-			} else if (lines_read == total_lines) {
-				break;
-			}
-
-			
-		}*/
-
-
-		/*while (fgets(line, sizeof(line), fp) != NULL){
-			printf("im in load while\n");
-			shellmemory[frame_store_index].var = strdup(filename); //not using strndup cuz files are usually null terminated
-        	shellmemory[frame_store_index].value = strndup(line, strlen(line)); 
-			printShellMemory();
-		
-			lines_read++;
-			curr_lines++;
-			printf("Current lines read:  %d, total lines read: %d\n", curr_lines, lines_read);
-
-			if (lines_read < total_lines){
-				if (curr_lines == FRAME_SIZE){
-					frame_number = ((frame_store_index - varmemsize) / 3) + 1;
-					//pcb->pagetable[current_page] = frame_number; 
-					printf("frame: %d, current_page: %d\n", frame_number, current_page);
-					current_page++;
-					*pEnd = (int) frame_store_index;
-					frame_store_index = find_free_frame();
-					if (frame_store_index == -1) {
-						printf("no frames available");
-						error_code = 21;
-						break;
-					}
-					curr_lines = 0;
-				}
-			} else if (lines_read == total_lines) {
-				break;
-			}
-
-			frame_store_index++;
-
-		}
-
-    return error_code;
-}*/
 
 
 char * mem_get_value_at_line(int index){
