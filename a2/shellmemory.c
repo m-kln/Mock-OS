@@ -1,8 +1,10 @@
+//Mona Kalaoun 261044639
 #include<stdlib.h>
 #include<string.h>
 #include<stdio.h>
 #include<stdbool.h>
 #include "pcb.h"
+#include "shellmemory.h"
 
 #define FRAME_SIZE 3
 #define SHELL_MEM_LENGTH varmemsize + framesize
@@ -47,6 +49,14 @@ char *extract(char *model) {
 void mem_init(){ //sets all vars and values to none 
 	int i;
 	for (i=0; i<SHELL_MEM_LENGTH; i++){		
+		shellmemory[i].var = "none";
+		shellmemory[i].value = "none";
+	}
+}
+
+void resetvarmem(){ //sets all vars and values to none 
+	int i;
+	for (i=0; i<varmemsize; i++){		
 		shellmemory[i].var = "none";
 		shellmemory[i].value = "none";
 	}
@@ -125,7 +135,7 @@ void printShellMemory(){
  * Stores the entirety of the program into shell mem, assuming there is no partition between frame and var store
  */
 
-int load_file(FILE* fp, int* pStart, int* pEnd, char* filename)
+/*int load_file(FILE* fp, int* pStart, int* pEnd, char* filename)
 {
 	char *line; //each line read from the file 
     size_t i; //size_t : unsigned int (good for index)
@@ -202,7 +212,7 @@ int load_file(FILE* fp, int* pStart, int* pEnd, char* filename)
 	}
 	printShellMemory();
     return error_code;
-}
+}*/
 
 int countLines(char* filename){
 	FILE* f = fopen(filename, "r");
@@ -226,12 +236,29 @@ int countPages(char* filename) {
 
 int find_free_frame() {
 	int index = -1;
+	int start_index;
 	for (int i = varmemsize; i < SHELL_MEM_LENGTH; i += 3){
 		if(strcmp(shellmemory[i].var,"none") == 0){
 			index = i;
 			break;
 		}
 	}
+
+	//eviction
+	if (index == -1){
+		int frame_number = rand() % TOTAL_FRAMES;
+		index = varmemsize + frame_number*3;
+		printf("Page fault! Victim page contents:\n");
+		for (int i = index; i < index + 3; i++){
+			char *l = mem_get_value_at_line(i);
+			printf("%s\n", l);
+		}
+		printf("End of victim page contents.\n");
+		printf("frame index start: %d\n", index);
+		printf("frame index end: %d\n", index+2);
+		mem_free_lines_frame(index, index+2);
+	}
+	printf("frame index: %d\n", index);
 	return index;
 }
 
@@ -246,17 +273,15 @@ int load_page(FILE *fp, char *filename, PCB *pcb) {
 	//printf("total lines: %d\n", total_lines);
 	//printf("total pages: %d\n", pages_needed);
     // Load the lines from the file into shellmemory
-	for (int p = 0; p< pages_needed; p++){
+	//for (int p = 0; p< 2; p++){
 		frame_index = find_free_frame();
-		if (frame_index == -1) {
-			//printf("no frames available");
-			error_code = 21;
-			break;
-		}
+		printf("frame index: %d\n", frame_index);
+		
+		initial_frame = frame_index;
 
 		for (int i = 0; i < 3; i++) {
-			if (p==0 & i==0) fstart = frame_index;
-			if (i==0) initial_frame = frame_index;
+			//if (p==0 & i==0) fstart = frame_index;
+			//if (i==0) initial_frame = frame_index;
 			char line[100];
 			if (fgets(line, sizeof(line), fp)) {
 				//printf("im in if of fgets\n");
@@ -278,13 +303,17 @@ int load_page(FILE *fp, char *filename, PCB *pcb) {
 		int frame_number = ((initial_frame - varmemsize) / 3) + 1;
 		pcb->pagetable[pcb->current_page] = frame_number; 
 		pcb->num_pages++;
-		//printf("frame: %d, current_page: %d, number of pages: %d\n", frame_number, pcb->current_page, pcb->num_pages);
-		pcb->current_page++;
-	}
+		printf("frame: %d, current_page: %d, number of pages: %d\n", frame_number, pcb->current_page, pcb->num_pages);
+		//pcb->current_page++;
+	//}
 
     // Calculate the ending position in frame store
-	pcb->start = fstart;
+	pcb->line_offset = initial_frame - fstart;
+	printf("line offset: %d\n", pcb->line_offset);
+	//pcb->start = fstart;
+	pcb->start = initial_frame;
     pcb->end = frame_index - 1;
+	printShellMemory();
 
 	//printf("pcb start: %d, pcb end: %d\n", pcb->start, pcb->end);
 
@@ -292,20 +321,36 @@ int load_page(FILE *fp, char *filename, PCB *pcb) {
 }
 
 
-char * mem_get_value_at_line(int index){
+char *mem_get_value_at_line(int index){
 	if(index<0 || index > SHELL_MEM_LENGTH) return NULL; 
 	return shellmemory[index].value;
 }
 
 //frees mem allocated for lines between start and end indices
 void mem_free_lines_between(int start, int end){
+	printf("start: %d, end: %d\n", start, end);
 	for (int i=start; i<=end && i<SHELL_MEM_LENGTH; i++){
+		printf("in loop 1");
 		if(shellmemory[i].var != NULL){
-			free(shellmemory[i].var);
+			printf("in loop 2");
+			//free(shellmemory[i].var);
 		}	
+		printf("in loop 3");
 		if(shellmemory[i].value != NULL){
-			free(shellmemory[i].value);
+			printf("in loop 4");
+			//free(shellmemory[i].value);
 		}	
+		printf("in loop 5");
+		shellmemory[i].var = "none";
+		shellmemory[i].value = "none";
+		printf("in loop 6");
+	}
+	printf("in loop 7");
+}
+
+void mem_free_lines_frame(int start, int end){
+	printf("start: %d, end: %d\n", start, end);
+	for (int i=start; i<=end; i++){
 		shellmemory[i].var = "none";
 		shellmemory[i].value = "none";
 	}

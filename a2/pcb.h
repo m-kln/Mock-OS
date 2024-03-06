@@ -1,3 +1,4 @@
+//Mona Kalaoun 261044639
 #ifndef PCB_H
 #define PCB_H
 #include <stdbool.h>
@@ -11,15 +12,6 @@
  * job_length_score: for EXEC AGING use only, stores the job length score
  */
 
-//typedef struct PAGE PAGE;
-
-//struct PAGE
-//{
- //   int index[3];
-   // int valid_bits[3];
-   // int page_index;
-   // int page_pid;
-//}PAGE;
 #define MAX_PAGES framesize/3
 
 typedef struct
@@ -33,6 +25,7 @@ typedef struct
     int pagetable[MAX_PAGES];
     int num_pages;
     int current_page;
+    int line_offset;
 }PCB;
 
 int generatePID();

@@ -1,3 +1,4 @@
+//Mona Kalaoun 261044639
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
@@ -19,23 +20,19 @@ int process_initialize(char *filename){
     FILE* fp;
     int* start = (int*)malloc(sizeof(int));
     int* end = (int*)malloc(sizeof(int));
-    
+    int error_code = 0;
     fp = fopen(filename, "rt");
     if(fp == NULL){
 		return FILE_DOES_NOT_EXIST;
     }
-   // printf("im in kernel before load\n ");
-    //int error_code = load_file(fp, start, end, filename);
-    /*int error_code = load_page(fp, filename, start, end, newPCB);
-    if(error_code != 0){
-        fclose(fp);
-        return FILE_ERROR;
-    }*/
-    //printf("im in kernel before load and before pcb\n");
-    //PCB* newPCB = makePCB(*start, *end);
+    int maxpages = countPages(filename);
     PCB* newPCB = makePCB();
-    int error_code = load_page(fp, filename, newPCB);
-    newPCB->PC = newPCB->start;
+    for (int p = 0; p< maxpages; p++){
+        error_code = load_page(fp, filename, newPCB);
+        newPCB->current_page++;
+    }
+    newPCB->PC = find_PC(newPCB);
+    printf("PC: %d\n", newPCB->PC);
     if(error_code != 0){
         fclose(fp);
         return FILE_ERROR;
@@ -47,30 +44,23 @@ int process_initialize(char *filename){
     ready_queue_add_to_tail(node);
 
     fclose(fp);
-    //printf("im in kernel after pcb\n");
-    //printf("start: %d, end %d\n", newPCB->start, newPCB->end);
+    
     return 0;
 }
 
-int shell_process_initialize(){ //ignore 
-    //Note that "You can assume that the # option will only be used in batch mode."
-    //So we know that the input is a file, we can directly load the file into ram
-    int* start = (int*)malloc(sizeof(int));
-    int* end = (int*)malloc(sizeof(int));
-    int error_code = 0;
-    error_code = load_file(stdin, start, end, "_SHELL");
-    if(error_code != 0){
-        return error_code;
-    }
-    PCB* newPCB = makePCB(*start,*end);
-    newPCB->priority = true;
+int find_PC(PCB *pcb){
+    int pc;
+    printf("current page: %d, frame: %d\n", pcb->current_page, pcb->pagetable[pcb->current_page]);
+    int frame = pcb->pagetable[0];
+    pc = varmemsize + (frame - 1)*3;
+    return pc;
+}
+
+void handle_page_fault(PCB *pcb){
+    //add pcb to tail of ready queue
     QueueNode *node = malloc(sizeof(QueueNode));
-    node->pcb = newPCB;
-
-    ready_queue_add_to_head(node);
-
-    freopen("/dev/tty", "r", stdin);
-    return 0;
+    node->pcb = pcb;
+    ready_queue_add_to_tail(node);
 }
 
 bool execute_process(QueueNode *node, int quanta){ //quanta: nbr of instr a process will run before switching to another process and running those instr

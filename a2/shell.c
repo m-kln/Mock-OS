@@ -1,3 +1,4 @@
+//Mona Kalaoun 261044639
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h> 
@@ -14,7 +15,7 @@ int parseInput(char ui[]);
 int main(int argc, char *argv[]) { 
 
     //Remove the backing store dir and contents if it exists 
-    system("rm -rf ./backing_store"); //getcwd?
+    system("rm -rf ./backing_store"); 
 
     //Create backing store dir upon shell initialization
     system("mkdir ./backing_store");

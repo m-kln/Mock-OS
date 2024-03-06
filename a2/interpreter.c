@@ -1,3 +1,4 @@
+//Mona Kalaoun 261044639
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h> 
@@ -45,6 +46,7 @@ int my_touch(char* filename);
 int my_cd(char* dirname);
 int exec(char *fname1, char *fname2, char *fname3); //, char* policy, bool background, bool mt);
 char* copy_file_back(char *filename, char *path);
+int resetmem();
 
 // Interpret commands and their arguments
 int interpreter(char* command_args[], int args_size){
@@ -66,7 +68,6 @@ int interpreter(char* command_args[], int args_size){
 	else if (strcmp(command_args[0], "quit") == 0 || strcmp(command_args[0], "exit") == 0)
 	{ // quit
 		if (args_size > 1) return handle_error(TOO_MANY_TOKENS);
-		// TODO
 		return quit();
 	}
 	else if (strcmp(command_args[0], "set")==0)
@@ -135,6 +136,12 @@ int interpreter(char* command_args[], int args_size){
 			return exec(command_args[1],command_args[2],NULL); 
 		else if(args_size == 4)
 			return exec(command_args[1],command_args[2],command_args[3]);
+	}
+	else if (strcmp(command_args[0], "resetmem")==0)
+	{
+		//resetmem
+		if (args_size > 1) return handle_error(TOO_MANY_TOKENS);
+		return resetmem(command_args[0]);
 	}
 	
 	return handle_error(BAD_COMMAND);
@@ -240,20 +247,17 @@ int run(char* script){
 }
 
 int exec(char *fname1, char *fname2, char *fname3) {
-	//printf("im in start of exec\n");
 	int error_code = 0;
-	//copy files to backing store	
+
+	//COPYING FILES INTO BACKING STORE
+	//Create 3 strings holding the paths to the files (backing_store/filename)
 	char path1[50];
 	char path2[50];
 	char path3[50];
 
 	if(fname1 != NULL){
-		//printf("im in exec before copy\n");
-		char* f1 = copy_file_back(fname1, path1);
-		//printf("im in exec after copy before process\n");
+		char* f1 = copy_file_back(fname1, path1); //get the file copy from backing_store
 		error_code = process_initialize(f1);
-		//printf("im in exec after process\n");
-		//printf("im in exec after process with error: %d\n ", error_code);
 		if(error_code != 0){
 			return handle_error(error_code);
 		}
@@ -272,18 +276,25 @@ int exec(char *fname1, char *fname2, char *fname3) {
 			return handle_error(error_code);
 		}
     } 
-	//printf("im in exec before schedule\n ");
 	error_code = schedule_by_policy("RR");
-	//printf("im in exec after schedule with error %d\n", error_code);
 	if(error_code != 0){
 		return handle_error(error_code);
 	}
 }
 
+int resetmem() {
+	resetvarmem();
+	return 0;
+}
+
+/*
+Function that copies a file into the backing_store using its filename and a string holder
+*/
 char* copy_file_back(char *filename, char *path) {
 	sprintf(path, "./backing_store/%s", filename);
-	FILE *src = fopen(filename, "r");
-	FILE *dst = fopen(path, "w");
+	FILE *src = fopen(filename, "r"); //original
+	FILE *dst = fopen(path, "w"); //copy
+	//copy the contents of the file into the copy
 	char c;
 	while ((c = fgetc(src)) != EOF) {
 		fputc(c, dst);

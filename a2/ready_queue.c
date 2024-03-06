@@ -66,7 +66,7 @@ void print_ready_queue(){
 
 void terminate_process(QueueNode *node){
     //node should not be in the ready queue
-    mem_free_lines_between(node->pcb->start, node->pcb->end);
+    //mem_free_lines_between(node->pcb->start, node->pcb->end);
     free(node);
 }
 
