@@ -25,6 +25,9 @@ typedef struct
     int pagetable[MAX_PAGES];
     int num_pages;
     int current_page;
+    int next_page;
+    int pages_needed;
+    char* filename;
     int line_offset;
 }PCB;
 

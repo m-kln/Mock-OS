@@ -18,8 +18,6 @@ bool in_background = false;
 
 int process_initialize(char *filename){
     FILE* fp;
-    int* start = (int*)malloc(sizeof(int));
-    int* end = (int*)malloc(sizeof(int));
     int error_code = 0;
     fp = fopen(filename, "rt");
     if(fp == NULL){
@@ -27,11 +25,16 @@ int process_initialize(char *filename){
     }
     int maxpages = countPages(filename);
     PCB* newPCB = makePCB();
-    for (int p = 0; p< maxpages; p++){
-        error_code = load_page(fp, filename, newPCB);
-        newPCB->current_page++;
+    //load the first 2 pages 
+    for (int p = 0; p< 2; p++){
+        if (!feof(fp)){
+            error_code = load_page(fp, filename, newPCB);
+            newPCB->next_page++;
+        }
     }
+    newPCB->filename = filename;
     newPCB->PC = find_PC(newPCB);
+    newPCB->pages_needed = maxpages;
     //printf("PC: %d\n", newPCB->PC);
     if(error_code != 0){
         fclose(fp);
@@ -51,35 +54,52 @@ int process_initialize(char *filename){
 int find_PC(PCB *pcb){
     int pc;
     //printf("current page: %d, frame: %d\n", pcb->current_page, pcb->pagetable[pcb->current_page]);
-    int frame = pcb->pagetable[0];
+    int frame = pcb->pagetable[pcb->current_page]; 
     pc = varmemsize + (frame - 1)*3;
     return pc;
 }
 
 void handle_page_fault(PCB *pcb){
     //add pcb to tail of ready queue
+
+    FILE *fp = fopen(pcb->filename, "rt");
+    fseek(fp, pcb->current_page * 3 * sizeof(char) , SEEK_SET);
+    load_page(fp, pcb->filename, pcb);
+    fclose(fp);
+
     QueueNode *node = malloc(sizeof(QueueNode));
     node->pcb = pcb;
     ready_queue_add_to_tail(node);
 }
 
-bool execute_process(QueueNode *node, int quanta){ //quanta: nbr of instr a process will run before switching to another process and running those instr
-   // printf("quanta: %d\n", quanta);
+bool execute_process(QueueNode *node, int quanta){
     char *line = NULL;
-    PCB *pcb = node->pcb; //the arrow -> allows access to members of a struct through a ptr
+    PCB *pcb = node->pcb;
     for(int i=0; i<quanta; i++){
-       // printf("PC: %d\n", pcb->PC);
+        //printf("PC in ex loop: %d, quanta: %d, current page: %d\n", pcb->PC, quanta, pcb->current_page);
         line = mem_get_value_at_line(pcb->PC++);
+        //printf("PC after line: %d\n", pcb->PC);
         //printf("line: %s\n", line);
         in_background = true;
         if(pcb->priority) {
             pcb->priority = false;
         }
-        if(pcb->PC>pcb->end){
-            parseInput(line);
-            terminate_process(node);
-            in_background = false;
-            return true;
+        //printf("PCB end: %d\n", pcb->end);
+        if(pcb->PC > pcb->end){
+            pcb->current_page++;
+            pcb->end = find_PC(pcb) + 2;
+
+            if (pcb->current_page + 1 >= pcb->pages_needed){
+                parseInput(line);
+                terminate_process(node);
+                in_background = false;
+                return true;
+            }           
+
+            if (pcb->pagetable[pcb->current_page] == -1){
+                handle_page_fault(pcb);
+                return false;
+            }
         }
         parseInput(line);
         in_background = false;

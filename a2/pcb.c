@@ -25,6 +25,7 @@ PCB* makePCB(){
     }
     newPCB->num_pages = 0;
     newPCB->current_page = 0;
+    newPCB->next_page = 0;
     newPCB->line_offset = 0;
     return newPCB;
 }

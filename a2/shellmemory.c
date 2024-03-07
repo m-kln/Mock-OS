@@ -246,16 +246,16 @@ int find_free_frame() {
 
 	//eviction
 	if (index == -1){
-		int frame_number = rand() % TOTAL_FRAMES;
-		index = varmemsize + frame_number*3;
+		int victim = rand() % TOTAL_FRAMES;
+		index = varmemsize + victim*3;
 		printf("Page fault! Victim page contents:\n");
 		for (int i = index; i < index + 3; i++){
 			char *l = mem_get_value_at_line(i);
-			printf("%s\n", l);
+			if (strcmp(l, "none") != 0) printf("%s", l);
 		}
-		printf("End of victim page contents.\n");
-		printf("frame index start: %d\n", index);
-		printf("frame index end: %d\n", index+2);
+		printf("\nEnd of victim page contents.\n");
+		//printf("frame index start: %d\n", index);
+		//printf("frame index end: %d\n", index+2);
 		mem_free_lines_frame(index, index+2);
 	}
 	//printf("frame index: %d\n", index);
@@ -270,49 +270,42 @@ int load_page(FILE *fp, char *filename, PCB *pcb) {
 	int frame_index = 0;
 	int initial_frame = 0;
 	int fstart = 0;
-	//printf("total lines: %d\n", total_lines);
-	//printf("total pages: %d\n", pages_needed);
     // Load the lines from the file into shellmemory
-	//for (int p = 0; p< 2; p++){
-		frame_index = find_free_frame();
-		//printf("frame index: %d\n", frame_index);
+	frame_index = find_free_frame();
+	//printf("frame index: %d\n", frame_index);
 		
-		initial_frame = frame_index;
+	initial_frame = frame_index;
 
-		for (int i = 0; i < 3; i++) {
-			//if (p==0 & i==0) fstart = frame_index;
-			//if (i==0) initial_frame = frame_index;
-			char line[100];
-			if (fgets(line, sizeof(line), fp)) {
-				//printf("im in if of fgets\n");
-				//printf("line: %s\n", line);
-				// Copy the line into the shellmemory array
-				shellmemory[frame_index].var = strdup(filename); // Store filename
-				shellmemory[frame_index].value = strndup(line, strlen(line)); // Store line
-				//printShellMemory();
-			} else {
-				if (feof(fp)){
-					break;
-				}
-
-				return 21;
+	for (int i = 0; i < 3; i++) {
+		char line[100];
+		if (fgets(line, sizeof(line), fp)) {
+			// Copy the line into the shellmemory array
+			shellmemory[frame_index].var = strdup(filename); // Store filename
+			shellmemory[frame_index].value = strndup(line, strlen(line)); // Store line
+			//printShellMemory();
+		} else {
+			if (feof(fp)){
+				break;
 			}
-			frame_index++;
+			return 21;
 		}
+		frame_index++;
+	}
 
-		int frame_number = ((initial_frame - varmemsize) / 3) + 1;
-		pcb->pagetable[pcb->current_page] = frame_number; 
-		pcb->num_pages++;
-		//printf("frame: %d, current_page: %d, number of pages: %d\n", frame_number, pcb->current_page, pcb->num_pages);
-		//pcb->current_page++;
-	//}
+	int frame_number = ((initial_frame - varmemsize) / 3) + 1;
+	pcb->pagetable[pcb->next_page] = frame_number; 
+	pcb->num_pages++;
+	//printf("frame: %d, current_page: %d, number of pages: %d\n", frame_number, pcb->current_page, pcb->num_pages);
+	//pcb->current_page++;
 
     // Calculate the ending position in frame store
-	pcb->line_offset = initial_frame - fstart;
+	//pcb->line_offset = initial_frame - fstart;
 	//printf("line offset: %d\n", pcb->line_offset);
 	//pcb->start = fstart;
-	pcb->start = initial_frame;
-    pcb->end = frame_index - 1;
+	//pcb->start = initial_frame;
+	pcb->start = varmemsize + (pcb->pagetable[0]-1)*3;
+	pcb->end = pcb->start + 2;
+    //pcb->end = frame_index - 1;
 	//printShellMemory();
 
 	//printf("pcb start: %d, pcb end: %d\n", pcb->start, pcb->end);
