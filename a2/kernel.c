@@ -26,7 +26,7 @@ int process_initialize(char *filename){
     int maxpages = countPages(filename);
     PCB* newPCB = makePCB();
     //load the first 2 pages 
-    for (int p = 0; p< 2; p++){
+    for (int p = 0; p< maxpages; p++){
         if (!feof(fp)){
             error_code = load_page(fp, filename, newPCB);
             newPCB->next_page++;
