@@ -71,8 +71,31 @@ void handle_page_fault(PCB *pcb){
     node->pcb = pcb;
     ready_queue_add_to_tail(node);
 }
+bool execute_process(QueueNode *node, int quanta){ //quanta: nbr of instr a process will run before switching to another process and running those instr
+   // printf("quanta: %d\n", quanta);
+    char *line = NULL;
+    PCB *pcb = node->pcb; //the arrow -> allows access to members of a struct through a ptr
+    for(int i=0; i<quanta; i++){
+       // printf("PC: %d\n", pcb->PC);
+        line = mem_get_value_at_line(pcb->PC++);
+        //printf("line: %s\n", line);
+        in_background = true;
+        if(pcb->priority) {
+            pcb->priority = false;
+        }
+        if(pcb->PC>pcb->end){
+            parseInput(line);
+            terminate_process(node);
+            in_background = false;
+            return true;
+        }
+        parseInput(line);
+        in_background = false;
+    }
+    return false;
+}
 
-bool execute_process(QueueNode *node, int quanta){
+/*bool execute_process(QueueNode *node, int quanta){
     char *line = NULL;
     PCB *pcb = node->pcb;
     for(int i=0; i<quanta; i++){
@@ -108,7 +131,7 @@ bool execute_process(QueueNode *node, int quanta){
         in_background = false;
     }
     return false;
-}
+}*/
 
 void *scheduler_FCFS(){
     QueueNode *cur;

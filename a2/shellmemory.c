@@ -304,8 +304,8 @@ int load_page(FILE *fp, char *filename, PCB *pcb) {
 	//pcb->start = fstart;
 	//pcb->start = initial_frame;
 	pcb->start = varmemsize + (pcb->pagetable[0]-1)*3;
-	pcb->end = pcb->start + 2;
-    //pcb->end = frame_index - 1;
+	//pcb->end = pcb->start + 2;
+    pcb->end = frame_index - 1;
 	//printShellMemory();
 
 	//printf("pcb start: %d, pcb end: %d\n", pcb->start, pcb->end);
