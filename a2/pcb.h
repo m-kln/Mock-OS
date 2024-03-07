@@ -22,8 +22,8 @@ typedef struct
     int start;
     int end;
     int job_length_score;
-    int pagetable[MAX_PAGES];
-    int num_pages;
+    int pagetable[MAX_PAGES]; //page table
+    int num_pages; 
     int current_page;
     int next_page;
     int pages_needed;

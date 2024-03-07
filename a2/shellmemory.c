@@ -17,10 +17,6 @@ struct memory_struct{
 
 struct memory_struct shellmemory[SHELL_MEM_LENGTH]; //first part for var store and the rest for frame store
 
-//function to alloc a new frame
-	//mem init
-	//call mem set value to allocate a frame
-
 // Helper functions
 int match(char *model, char *var) {
 	int i, len=strlen(var), matchCount=0;
@@ -54,7 +50,7 @@ void mem_init(){ //sets all vars and values to none
 	}
 }
 
-void resetvarmem(){ //sets all vars and values to none 
+void resetvarmem(){ //sets all vars and values in var store to none 
 	int i;
 	for (i=0; i<varmemsize; i++){		
 		shellmemory[i].var = "none";
@@ -113,131 +109,33 @@ void printShellMemory(){
 	printf("\n\t%d lines in total, %d lines in use, %d lines free\n\n", SHELL_MEM_LENGTH, SHELL_MEM_LENGTH-count_empty, count_empty);
 }
 
-
-/*
- * Function:  addFileToMem 
- * 	Added in A2
- * --------------------
- * Load the source code of the file fp into the shell memory:
- * 		Loading format - var stores fileID, value stores a line
- *		Note that the first 100 lines are for set command, the rests are for run and exec command
- *
- *  pStart: This function will store the first line of the loaded file 
- * 			in shell memory in here. Stores starting index of file at which we have 
- * 			a contiguous block of empty elements that can fit the file
- *	pEnd: This function will store the last line of the loaded file 
- 			in shell memory in here
- *  fileID: Input that need to provide when calling the function, 
- 			stores the ID of the file (var)
- * 
- * returns: error code, 21: no space left
- * 
- * Stores the entirety of the program into shell mem, assuming there is no partition between frame and var store
- */
-
-/*int load_file(FILE* fp, int* pStart, int* pEnd, char* filename)
-{
-	char *line; //each line read from the file 
-    size_t i; //size_t : unsigned int (good for index)
-    int error_code = 0;
-	bool hasSpaceLeft = false;
-	bool flag = true; //set to true to allow while loop to execute at least once
-	i=101; //first 100 elements of shell mem is for variables and the frame store would start after
-	size_t candidate;
-	while(flag){ //goal: find starting index in mem for loading the file
-		printf("restarting loop");
-		flag = false;
-		for (i; i < SHELL_MEM_LENGTH; i++){
-			if(strcmp(shellmemory[i].var,"none") == 0){
-				*pStart = (int)i; //as soon as an empty slot is found, set the start index to current i
-				hasSpaceLeft = true;
-				break;
-			}
-		}
-		candidate = i; //remember location of empty slot
-		printf("candidate in loop: %d\n", candidate);
-		//finds a non empty slot and sets flag to true (ignore)
-		for(i; i < SHELL_MEM_LENGTH; i++){
-			if(strcmp(shellmemory[i].var,"none") != 0){
-				flag = true;
-				break;
-			}
-		}
-	}
-	//^ after while loop, nothing set in memory yet
-	printf("candidate after loop: %d\n", candidate);
-	i = candidate;
-	printf("i after loop: %d\n", i);
-	printShellMemory();
-	//shell memory is full
-	if(hasSpaceLeft == 0){
-		error_code = 21;
-		return error_code;
-	}
-    
-	//load each line of file in memory 
-    for (size_t j = i; j < SHELL_MEM_LENGTH; j++){
-		printf("j at loop: %d\n", j);
-        if(feof(fp))
-        {
-			printf("j at eof: %d\n", j);
-            *pEnd = (int)j-1;
-            break;
-        }else{
-			line = calloc(1, SHELL_MEM_LENGTH); //calloc is good for when u have elements that start with default values
-			printf("line after calloc: %s\n", line);
-			if (fgets(line, SHELL_MEM_LENGTH, fp) == NULL) //fgets reads until either mem-length-1 or \n or EOF
-			{
-				continue;
-			}
-			printf("line after fgets: %s\n", line);
-			shellmemory[j].var = strdup(filename); //not using strndup cuz files are usually null terminated
-            shellmemory[j].value = strndup(line, strlen(line)); 
-			printShellMemory();
-			//strndup duplicates a specified nbr of chars from start of a string
-			//strlen does not include null terminator. Good to use here since we want to avoid unneeded chars 
-			free(line);
-        }
-    }
-
-	//no space left to load the entire file into shell memory
-	if(!feof(fp)){
-		error_code = 21;
-		//clean up the file in memory
-		for(int j = 1; i <= SHELL_MEM_LENGTH; i ++){
-			shellmemory[j].var = "none";
-			shellmemory[j].value = "none";
-    	}
-		return error_code;
-	}
-	printShellMemory();
-    return error_code;
-}*/
-
+//returns total number of lines in a file
 int countLines(char* filename){
 	FILE* f = fopen(filename, "r");
 	int total_lines = 0;
 	char temp[framesize];
 	while (!feof(f)){
 		fgets(temp,framesize,f);
-		total_lines++;
+		total_lines++; //increment until EOF
 	}
 	fclose(f);
 	return total_lines;
 }
 
+//returns total number of pages needed to store the contents of a file
 int countPages(char* filename) {
 	int total_lines = countLines(filename);
-	int total_pages = total_lines/3;
-	if (total_lines%3 != 0) total_pages++;
+	int total_pages = total_lines/3; //each page is 3 lines
+	if (total_lines%3 != 0) total_pages++; //if nbr of lines is not a multiple of 3, increase page count
 
 	return total_pages;
 }
 
+//finds a free spot in frame store
 int find_free_frame() {
 	int index = -1;
 	int start_index;
-	for (int i = varmemsize; i < SHELL_MEM_LENGTH; i += 3){
+	for (int i = varmemsize; i < SHELL_MEM_LENGTH; i += 3){ //framestore starts from index varmemsize
 		if(strcmp(shellmemory[i].var,"none") == 0){
 			index = i;
 			break;
@@ -246,22 +144,21 @@ int find_free_frame() {
 
 	//eviction
 	if (index == -1){
-		int victim = rand() % TOTAL_FRAMES;
-		index = varmemsize + victim*3;
+		int victim = rand() % TOTAL_FRAMES; //random replacement
+		index = varmemsize + victim*3; //determine starting index/line of the victim frame
 		printf("Page fault! Victim page contents:\n");
 		for (int i = index; i < index + 3; i++){
-			char *l = mem_get_value_at_line(i);
+			char *l = mem_get_value_at_line(i); //print all commands of victim page
 			if (strcmp(l, "none") != 0) printf("%s", l);
 		}
 		printf("\nEnd of victim page contents.\n");
-		//printf("frame index start: %d\n", index);
-		//printf("frame index end: %d\n", index+2);
-		mem_free_lines_frame(index, index+2);
+		
+		mem_free_lines_frame(index, index+2); //reset vars and values to none corresponding to the evicted page
 	}
-	//printf("frame index: %d\n", index);
 	return index;
 }
 
+//function loading one page at a time
 int load_page(FILE *fp, char *filename, PCB *pcb) {
 	int error_code = 0;
 	int pages_needed = countPages(filename);
@@ -270,45 +167,32 @@ int load_page(FILE *fp, char *filename, PCB *pcb) {
 	int frame_index = 0;
 	int initial_frame = 0;
 	int fstart = 0;
-    // Load the lines from the file into shellmemory
-	frame_index = find_free_frame();
-	//printf("frame index: %d\n", frame_index);
-		
-	initial_frame = frame_index;
 
-	for (int i = 0; i < 3; i++) {
+	frame_index = find_free_frame(); //find a free slot
+		
+	initial_frame = frame_index; //save the first index of the slot
+
+	for (int i = 0; i < 3; i++) { //max 3 lines
 		char line[100];
 		if (fgets(line, sizeof(line), fp)) {
 			// Copy the line into the shellmemory array
 			shellmemory[frame_index].var = strdup(filename); // Store filename
 			shellmemory[frame_index].value = strndup(line, strlen(line)); // Store line
-			//printShellMemory();
 		} else {
 			if (feof(fp)){
 				break;
 			}
-			return 21;
+			return 21; //error code
 		}
 		frame_index++;
 	}
 
-	int frame_number = ((initial_frame - varmemsize) / 3) + 1;
-	pcb->pagetable[pcb->next_page] = frame_number; 
+	int frame_number = ((initial_frame - varmemsize) / 3) + 1; //adding 1 so that frame numbers start with the number 1,2,3,..
+	pcb->pagetable[pcb->next_page] = frame_number; //saving the current frame in the current page
 	pcb->num_pages++;
-	//printf("frame: %d, current_page: %d, number of pages: %d\n", frame_number, pcb->current_page, pcb->num_pages);
-	//pcb->current_page++;
 
-    // Calculate the ending position in frame store
-	//pcb->line_offset = initial_frame - fstart;
-	//printf("line offset: %d\n", pcb->line_offset);
-	//pcb->start = fstart;
-	//pcb->start = initial_frame;
 	pcb->start = varmemsize + (pcb->pagetable[0]-1)*3;
-	//pcb->end = pcb->start + 2;
     pcb->end = frame_index - 1;
-	//printShellMemory();
-
-	//printf("pcb start: %d, pcb end: %d\n", pcb->start, pcb->end);
 
     return 0; // Success
 }
@@ -321,28 +205,20 @@ char *mem_get_value_at_line(int index){
 
 //frees mem allocated for lines between start and end indices
 void mem_free_lines_between(int start, int end){
-	printf("start: %d, end: %d\n", start, end);
 	for (int i=start; i<=end && i<SHELL_MEM_LENGTH; i++){
-		printf("in loop 1");
 		if(shellmemory[i].var != NULL){
-			printf("in loop 2");
-			//free(shellmemory[i].var);
+			free(shellmemory[i].var);
 		}	
-		printf("in loop 3");
 		if(shellmemory[i].value != NULL){
-			printf("in loop 4");
-			//free(shellmemory[i].value);
+			free(shellmemory[i].value);
 		}	
-		printf("in loop 5");
 		shellmemory[i].var = "none";
 		shellmemory[i].value = "none";
-		printf("in loop 6");
 	}
-	printf("in loop 7");
 }
 
+//function resetting values in a frame to none
 void mem_free_lines_frame(int start, int end){
-	//printf("start: %d, end: %d\n", start, end);
 	for (int i=start; i<=end; i++){
 		shellmemory[i].var = "none";
 		shellmemory[i].value = "none";

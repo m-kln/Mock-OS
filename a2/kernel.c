@@ -35,7 +35,6 @@ int process_initialize(char *filename){
     newPCB->filename = filename;
     newPCB->PC = find_PC(newPCB);
     newPCB->pages_needed = maxpages;
-    //printf("PC: %d\n", newPCB->PC);
     if(error_code != 0){
         fclose(fp);
         return FILE_ERROR;
@@ -51,9 +50,9 @@ int process_initialize(char *filename){
     return 0;
 }
 
+//determine PC
 int find_PC(PCB *pcb){
     int pc;
-    //printf("current page: %d, frame: %d\n", pcb->current_page, pcb->pagetable[pcb->current_page]);
     int frame = pcb->pagetable[pcb->current_page]; 
     pc = varmemsize + (frame - 1)*3;
     return pc;
@@ -72,13 +71,10 @@ void handle_page_fault(PCB *pcb){
     ready_queue_add_to_tail(node);
 }
 bool execute_process(QueueNode *node, int quanta){ //quanta: nbr of instr a process will run before switching to another process and running those instr
-   // printf("quanta: %d\n", quanta);
     char *line = NULL;
     PCB *pcb = node->pcb; //the arrow -> allows access to members of a struct through a ptr
     for(int i=0; i<quanta; i++){
-       // printf("PC: %d\n", pcb->PC);
         line = mem_get_value_at_line(pcb->PC++);
-        //printf("line: %s\n", line);
         in_background = true;
         if(pcb->priority) {
             pcb->priority = false;
@@ -217,7 +213,6 @@ void *scheduler_RR(void *arg){
 }
 
 int schedule_by_policy(char* policy){ //, bool mt){
-    //printf("im in kernel inside schedule at start\n");
     if(strcmp(policy, "FCFS")!=0 && strcmp(policy, "SJF")!=0 && 
         strcmp(policy, "RR")!=0 && strcmp(policy, "AGING")!=0 && strcmp(policy, "RR30")!=0){
             return SCHEDULING_ERROR;
@@ -230,7 +225,6 @@ int schedule_by_policy(char* policy){ //, bool mt){
     }else if(strcmp("SJF",policy)==0){
         scheduler_SJF();
     }else if(strcmp("RR",policy)==0){
-        //printf("im in kernel inside schedule at RR\n");
         arg[0] = 2;
         scheduler_RR((void *) arg);
     }else if(strcmp("AGING",policy)==0){
