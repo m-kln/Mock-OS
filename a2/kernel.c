@@ -90,7 +90,7 @@ bool execute_process(QueueNode *node, int quanta){
             pcb->end = find_PC(pcb) + 2;
 
             if (pcb->current_page + 1 >= pcb->pages_needed){
-                parseInput(line);
+                if (strcmp(line, "none") != 0) parseInput(line);
                 terminate_process(node);
                 in_background = false;
                 return true;
@@ -101,7 +101,7 @@ bool execute_process(QueueNode *node, int quanta){
                 return false;
             }
         }
-        parseInput(line);
+        if (strcmp(line, "none") != 0) parseInput(line);
         in_background = false;
     }
     return false;
