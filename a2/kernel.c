@@ -86,10 +86,13 @@ bool execute_process(QueueNode *node, int quanta){
         }
         //printf("PCB end: %d\n", pcb->end);
         if(pcb->PC > pcb->end){
+            //printf("page before: %d\n", pcb->current_page);
             pcb->current_page++;
+            //printf("page after: %d\n", pcb->current_page);
             pcb->end = find_PC(pcb) + 2;
-
-            if (pcb->current_page + 1 >= pcb->pages_needed){
+            //printf("page needed: %d\n", pcb->pages_needed);
+            if (pcb->current_page + 1 > pcb->pages_needed){
+               // printf("terminate\n");
                 if (strcmp(line, "none") != 0) parseInput(line);
                 terminate_process(node);
                 in_background = false;
