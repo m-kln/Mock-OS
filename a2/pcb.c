@@ -20,12 +20,16 @@ PCB* makePCB(){
     //newPCB->end = end;
     //newPCB->job_length_score = 1+newPCB->end-newPCB->start;
     newPCB->priority = false;
-    for (int i = 0; i < MAX_PAGES; i++){
+    for (int i = 0; i < 50; i++){
        newPCB->pagetable[i] = -1; //initialize the page table values
     }
     newPCB->num_pages = 0;
-    newPCB->current_page = 0;
+    //newPCB->current_page = 0;
     newPCB->next_page = 0;
-    newPCB->line_offset = 0;
+    for (int i = 0; i <50; i++){
+        newPCB->lru_timer[i] = 0;
+    }
+
+    newPCB->pagefault = false;
     return newPCB;
 }

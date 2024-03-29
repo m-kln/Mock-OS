@@ -113,9 +113,9 @@ void printShellMemory(){
 int countLines(char* filename){
 	FILE* f = fopen(filename, "r");
 	int total_lines = 0;
-	char temp[framesize];
+	char temp[100];
 	while (!feof(f)){
-		fgets(temp,framesize,f);
+		fgets(temp,100,f);
 		total_lines++; //increment until EOF
 	}
 	fclose(f);
@@ -125,14 +125,28 @@ int countLines(char* filename){
 //returns total number of pages needed to store the contents of a file
 int countPages(char* filename) {
 	int total_lines = countLines(filename);
+	//printf("total lines: %d\n", total_lines);
 	int total_pages = total_lines/3; //each page is 3 lines
 	if (total_lines%3 != 0) total_pages++; //if nbr of lines is not a multiple of 3, increase page count
 
 	return total_pages;
 }
 
+int get_victim(PCB *pcb){
+	int min = 1000;
+	int victim = 0;
+	//printf("total pages: %d\n", pcb->pages_needed);
+	for (int i = 0; i<pcb->num_pages ; i++){
+		if(pcb->lru_timer[i] < min) {
+			min = pcb->lru_timer[i];
+			victim = i;
+		}
+	}
+	return victim;
+}
+
 //finds a free spot in frame store
-int find_free_frame() {
+int find_free_frame(PCB *pcb) {
 	int index = -1;
 	int start_index;
 	for (int i = varmemsize; i < SHELL_MEM_LENGTH; i += 3){ //framestore starts from index varmemsize
@@ -144,17 +158,22 @@ int find_free_frame() {
 
 	//eviction
 	if (index == -1){
-		int victim = rand() % TOTAL_FRAMES; //random replacement
+		int victim = get_victim(pcb); //random replacement
+		//printf("victim: %d\n", victim);
 		index = varmemsize + victim*3; //determine starting index/line of the victim frame
 		printf("Page fault! Victim page contents:\n");
 		for (int i = index; i < index + 3; i++){
+			printf("i: %d\n", i);
 			char *l = mem_get_value_at_line(i); //print all commands of victim page
 			if (strcmp(l, "none") != 0) printf("%s", l);
 		}
-		printf("\nEnd of victim page contents.\n");
-		
+		printf("End of victim page contents.\n");
+		//printf("frame index start: %d\n", index);
+		//printf("frame index end: %d\n", index+2);
 		mem_free_lines_frame(index, index+2); //reset vars and values to none corresponding to the evicted page
+		pcb->lru_timer[victim] = 0;
 	}
+	//printf("frame index: %d\n", index);
 	return index;
 }
 
@@ -168,7 +187,8 @@ int load_page(FILE *fp, char *filename, PCB *pcb) {
 	int initial_frame = 0;
 	int fstart = 0;
 
-	frame_index = find_free_frame(); //find a free slot
+	frame_index = find_free_frame(pcb); //find a free slot
+	//printf("frame index: %d\n", frame_index);
 		
 	initial_frame = frame_index; //save the first index of the slot
 
@@ -178,6 +198,7 @@ int load_page(FILE *fp, char *filename, PCB *pcb) {
 			// Copy the line into the shellmemory array
 			shellmemory[frame_index].var = strdup(filename); // Store filename
 			shellmemory[frame_index].value = strndup(line, strlen(line)); // Store line
+			//printShellMemory();
 		} else {
 			if (feof(fp)){
 				break;
@@ -188,11 +209,26 @@ int load_page(FILE *fp, char *filename, PCB *pcb) {
 	}
 
 	int frame_number = ((initial_frame - varmemsize) / 3) + 1; //adding 1 so that frame numbers start with the number 1,2,3,..
-	pcb->pagetable[pcb->next_page] = frame_number; //saving the current frame in the current page
-	pcb->num_pages++;
+	//printf("frame number: %d\n", frame_number);
+	//printf("page frame index: %d\n", pcb->current_page);
+	pcb->pagetable[pcb->current_page] = frame_number; //saving the current frame in the current page
+	//pcb->lru_timer[pcb->current_page]++;
 
-	pcb->start = varmemsize + (pcb->pagetable[0]-1)*3;
-    pcb->end = frame_index - 1;
+	pcb->num_pages++;
+	//printf("frame: %d, current_page: %d, number of pages: %d\n", frame_number, pcb->current_page, pcb->num_pages);
+	//pcb->current_page++;
+
+    // Calculate the ending position in frame store
+	//pcb->line_offset = initial_frame - fstart;
+	//printf("line offset: %d\n", pcb->line_offset);
+	//pcb->start = fstart;
+	//pcb->start = initial_frame;
+	//==pcb->start = varmemsize + (pcb->pagetable[pcb->current_page]-1)*3;
+	//pcb->end = pcb->start + 2;
+    //pcb->end = frame_index - 1;
+	//printShellMemory();
+
+	//printf("pcb start: %d, pcb end: %d\n", pcb->start, pcb->end);
 
     return 0; // Success
 }
@@ -217,7 +253,7 @@ void mem_free_lines_between(int start, int end){
 	}
 }
 
-//function resetting values in a frame to none
+//function resetting values in a frame
 void mem_free_lines_frame(int start, int end){
 	for (int i=start; i<=end; i++){
 		shellmemory[i].var = "none";

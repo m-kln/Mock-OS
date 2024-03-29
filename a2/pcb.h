@@ -22,12 +22,15 @@ typedef struct
     int start;
     int end;
     int job_length_score;
-    int pagetable[MAX_PAGES]; //page table
+    int pagetable[50]; //page table
     int num_pages; 
     int current_page;
     int next_page;
     int pages_needed;
+    int lru_timer[50]; 
     char* filename;
+    bool pagefault;
+    //FILE* file;
     int line_offset;
 }PCB;
 
