@@ -74,7 +74,7 @@ int copy_out(char *fname) {
   }
   fputs(buffer, file);
   fclose(file);
-
+  free(buffer);
   fsutil_seek(fname, offset); //reset file's offset 
   return 0;
 }
