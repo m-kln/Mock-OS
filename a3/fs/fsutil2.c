@@ -38,14 +38,16 @@ int copy_in(char *fname) {
   
   char* buffer = malloc((size+1)*sizeof(char)); 
   memset(buffer, 0 , size+1);
-  //while ((b=fread(buffer, 1, sizeof(buffer), file)) > 0){
-   // fsutil_write(fname, buffer, b);
-  //}
-  while (!feof(file)) {
-    fread(buffer, sizeof(buffer), sizeof(buffer), file);
-  }
 
-  fsutil_write(fname, buffer, size+1);
+  
+  while ((b=fread(buffer, 1, size+1, file)) > 0){
+    fsutil_write(fname, buffer, b);
+  }
+//while (!feof(file)) {
+   // fread(buffer, sizeof(buffer), sizeof(buffer), file);
+ // }
+
+  //fsutil_write(fname, buffer, size+1);
 
   fclose(file);
   free(buffer);
