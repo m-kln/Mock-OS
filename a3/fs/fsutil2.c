@@ -48,8 +48,8 @@ int copy_in(char *fname) {
   fsutil_write(fname, buffer, size+1);
 
   fclose(file);
-
-  //fsutil_seek(fname, offset); //reset file's offset
+  free(buffer);
+  fsutil_seek(fname, 0); //reset file's offset
   return 0;
 }
 
