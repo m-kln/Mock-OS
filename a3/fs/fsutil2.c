@@ -57,8 +57,8 @@ int copy_in(char *fname) {
 
 int copy_out(char *fname) {
   //code from lab 
-  struct file *file_s = get_file_by_fname(fname);
-  offset_t offset = file_tell(file_s); //store file's current offset 
+  //struct file *file_s = get_file_by_fname(fname);
+  //offset_t offset = file_tell(file_s); //store file's current offset 
 
   int size = fsutil_size(fname); //retrieve size of the file
   char* buffer = malloc((size+1)*sizeof(char)); 
@@ -75,7 +75,7 @@ int copy_out(char *fname) {
   fputs(buffer, file);
   fclose(file);
   free(buffer);
-  fsutil_seek(fname, offset); //reset file's offset 
+ // fsutil_seek(fname, offset); //reset file's offset 
   return 0;
 }
 
