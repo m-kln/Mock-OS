@@ -25,7 +25,7 @@ int copy_in(char *fname) {
 
   if (file == NULL) {
     printf("fdn\n");
-    return -1;
+    return 0;
   }
 
   //Find real HD file's size 
