@@ -68,7 +68,7 @@ int copy_out(char *fname) {
 
   if (file == NULL) {
     printf("fdn\n");
-    return -1;
+    return 0;
   }
   fputs(buffer, file);
   fclose(file);
