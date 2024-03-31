@@ -19,7 +19,6 @@ int copy_in(char *fname) {
   //real HD -> shell HD
   //lack of free space -> "Warning: could only write %d out of %ld bytes (reached end of file)"
   //%d: nbr of bytes you could write %ld:total file size of the file
-  /*
   size_t b;
   FILE* file = fopen(fname, "rb");
 
@@ -40,18 +39,18 @@ int copy_in(char *fname) {
   memset(buffer, 0 , size+1);
 
   
-  while ((b=fread(buffer, 1, size+1, file)) > 0){
-    fsutil_write(fname, buffer, b);
+  //while ((b=fread(buffer, 1, size+1, file)) > 0){
+    //fsutil_write(fname, buffer, b);
+  //}
+  while (!feof(file)) {
+    fread(buffer, sizeof(buffer), sizeof(buffer), file);
   }
-//while (!feof(file)) {
-   // fread(buffer, sizeof(buffer), sizeof(buffer), file);
- // }
 
-  //fsutil_write(fname, buffer, size+1);
+  fsutil_write(fname, buffer, size+1);
 
   fclose(file);
   free(buffer);
-  fsutil_seek(fname, 0); //reset file's offset */
+  fsutil_seek(fname, 0); //reset file's offset 
   return 0;
 }
 
