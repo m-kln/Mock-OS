@@ -37,7 +37,7 @@ int copy_in(char *fname) {
   fsutil_create(fname, size); //create file on shell HD using same name and size as OG
   
   char* buffer = malloc((size+1)*sizeof(char)); 
-  //memset(buffer, 0 , size+1);
+  memset(buffer, 0 , size+1);
   //while ((b=fread(buffer, 1, sizeof(buffer), file)) > 0){
    // fsutil_write(fname, buffer, b);
   //}
