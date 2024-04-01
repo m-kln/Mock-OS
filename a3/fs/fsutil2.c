@@ -117,22 +117,33 @@ void fragmentation_degree() {
   //Fragmentable file : file that has more than 1 DB
   int fragmented = 0; //count for number of fragmented files
   int fragmentable = 0; //count for number of fragmentable files
-  float degree = 0;
+  float degree = 0; //variable storing fragmentation degree
+
+  //structure similar to fsutil_ls()
   struct dir *dir;
   char name[NAME_MAX + 1]; //stores file names
 
   dir = dir_open_root(); 
-  while (dir_readdir(dir, name)){
+  while (dir_readdir(dir, name)){ 
     struct file *f = filesys_open(name); //open each file in root dir
     if (f != NULL){
       int f_size = file_length(f); //calculate file size
 
-      if (f_size > 512){
+      if (f_size > 512){ //if file is greater than 512 bytes (max sector size), it is fragmentable
         fragmentable++;
 
-        block_sector_t *sectors = get_inode_data_sectors(f->inode);
-        for (int j = 1; j < f_size / 512; j++){
+        block_sector_t *sectors = get_inode_data_sectors(f->inode); //get the sectors of data blocks associated to the inode of the file
+        offset_t length = f->inode->data.length;
+        printf("data.length: %d\n", length);
+        size_t sectors1 = bytes_to_sectors(length);
+        printf("sectors1: %ld\n", sectors1);
+        int fs = f_size/512;
+        printf("fsize: %d\n", fs);
+        //Loop through the sectors 
+        for (int j = 1; j < (f_size / 512); j++){ 
+          printf("sector[j]: %d\n", sectors[j]);
           if (sectors[j]-sectors[j-1]>3){
+            printf("sector[j]: %d\n", sectors[j]);
             fragmented++;
             break;
           }
