@@ -57,6 +57,8 @@ int copy_in(char *fname) {
 int copy_out(char *fname) {
   //code from lab 
   //struct file *file_s = get_file_by_fname(fname);
+  //block_sector_t *in = get_inode_data_sectors(file_s->inode);
+  //printf("inode: %ls\n", in);
   //offset_t offset = file_tell(file_s); //store file's current offset 
 
   int size = fsutil_size(fname); //retrieve size of the file
@@ -80,6 +82,29 @@ int copy_out(char *fname) {
 
 void find_file(char *pattern) {
   // TODO
+  //go through all files in root dir and print the name of each file whose contents contain the pattern
+  struct dir *dir;
+  char name[NAME_MAX + 1];
+
+  dir = dir_open_root();
+  while (dir_readdir(dir, name)){
+    struct file *f = filesys_open(name);
+    if (f != NULL){
+      int f_size = file_length(f);
+      if (f_size > 0){
+        char *buffer = malloc(f_size + 1);
+
+        fsutil_read(name, buffer, f_size);
+        if (strstr(buffer, pattern) != NULL){
+          printf("%s\n", name);
+        }
+
+        free(buffer);
+      }
+    }
+    file_close(f);
+  }
+  dir_close(dir);
   return;
 }
 
