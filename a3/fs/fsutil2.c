@@ -134,6 +134,7 @@ void fragmentation_degree() {
         for (int j = 1; j < f_size / 512; j++){
           if (sectors[j]-sectors[j-1]>3){
             fragmented++;
+            break;
           }
         }
         free(sectors);
