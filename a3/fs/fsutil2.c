@@ -81,24 +81,23 @@ int copy_out(char *fname) {
 }
 
 void find_file(char *pattern) {
-  // TODO
   //go through all files in root dir and print the name of each file whose contents contain the pattern
+  //similar structure as fsutil_ls()
   struct dir *dir;
-  char name[NAME_MAX + 1];
+  char name[NAME_MAX + 1]; //stores file names
 
-  dir = dir_open_root();
+  dir = dir_open_root(); 
   while (dir_readdir(dir, name)){
-    struct file *f = filesys_open(name);
+    struct file *f = filesys_open(name); //open each file in root dir
     if (f != NULL){
-      int f_size = file_length(f);
+      int f_size = file_length(f); //calculate file size
       if (f_size > 0){
         char *buffer = malloc(f_size + 1);
 
-        fsutil_read(name, buffer, f_size);
-        if (strstr(buffer, pattern) != NULL){
-          printf("%s\n", name);
+        fsutil_read(name, buffer, f_size); //buffer contains contents of the file
+        if (strstr(buffer, pattern) != NULL){ //search for the pattern in the buffer
+          printf("%s\n", name); //if found, print the name of the file
         }
-
         free(buffer);
       }
     }
@@ -110,6 +109,46 @@ void find_file(char *pattern) {
 
 void fragmentation_degree() {
   // TODO
+  //Print out the degree of fragmentation of fs
+  //degree = number of fragmented filed / number of fragmentable files
+  //fragmented file: contains at least 2 consecutive data blocks in sectors that are more than 3 away from each other
+  //ex: file with 3 DB in sectors 3,4,5 or 3,4,7 is not fragmented
+  //ex: file with 2 DB in sectors 4 and 10 is fragmented
+  //Fragmentable file : file that has more than 1 DB
+  int fragmented = 0; //count for number of fragmented files
+  int fragmentable = 0; //count for number of fragmentable files
+  float degree = 0;
+  struct dir *dir;
+  char name[NAME_MAX + 1]; //stores file names
+
+  dir = dir_open_root(); 
+  while (dir_readdir(dir, name)){
+    struct file *f = filesys_open(name); //open each file in root dir
+    if (f != NULL){
+      int f_size = file_length(f); //calculate file size
+
+      if (f_size > 512){
+        fragmentable++;
+
+        block_sector_t *sectors = get_inode_data_sectors(f->inode);
+        for (int j = 1; j < f_size / 512; j++){
+          if (sectors[j]-sectors[j-1]>3){
+            fragmented++;
+          }
+        }
+        free(sectors);
+      }
+    }
+    file_close(f);
+  }
+  dir_close(dir);
+
+  degree = (float) fragmented/fragmentable;
+
+
+  printf("Num fragmentable files: %d\n", fragmentable);
+  printf("Num fragmented files: %d\n", fragmented);
+  printf("Fragmentation pct: %.6f\n", degree);
 }
 
 int defragment() {
