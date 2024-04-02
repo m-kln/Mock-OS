@@ -226,7 +226,7 @@ int defragment() {
 
         nbr_files++;
         printf("11\n");
-        free(buffer);
+        //free(buffer);
         printf("12\n");
       }
     }
