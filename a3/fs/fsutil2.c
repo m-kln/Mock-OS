@@ -131,7 +131,7 @@ void fragmentation_degree() {
         fragmentable++;
 
         block_sector_t *sectors = get_inode_data_sectors(f->inode); //get the sectors of data blocks associated to the inode of the file
-        //offset_t length = f->inode->data.length;
+        offset_t length = f->inode->data.length;
         //printf("data.length: %d\n", length);
         size_t sectors1 = bytes_to_sectors(length);
         //printf("sectors1: %ld\n", sectors1);
