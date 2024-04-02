@@ -183,7 +183,7 @@ int defragment() {
         //fragmentable++;
         char *buffer = malloc(f_size);
         fsutil_read(name, buffer, f_size);
-        file_close(name);
+        file_close(f);
         fsutil_rm(name);
         fsutil_create(name, f_size);
         fsutil_write(name, buffer, f_size);
@@ -191,7 +191,7 @@ int defragment() {
         free(buffer);
       }
     }
-    file_close(f);
+    //file_close(f);
   }
   dir_close(dir);
 
