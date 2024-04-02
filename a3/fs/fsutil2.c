@@ -239,13 +239,48 @@ int defragment() {
 
 void recover(int flag) {
   if (flag == 0) { // recover deleted inodes
-
+    //Recover deleted files
+    //Scan all free sectors on the drive and check if any contain inodes which were previously deleted from root but still exist on disk
+    //If found, restore the inodes so files can be accessed normally
+    //Filename should be recovered0-%d where d is the sector nbr containing deleted inode (use dir_add)
     // TODO
-  } else if (flag == 1) { // recover all non-empty sectors
 
+    //if I'm checking all the sectors and using buffer_cache_read , how do I know if the sector has an inode or not?
+    //check if inode->data.magic is equal to the inode magic constant
+    //try storing it using inode_open, then check if it has the magic number
+    
+    // when we recover the inode, we need to go through each data sector and mark it in the bitmap
+    //Read through buffer_cache_read. allocate *char buffer pass in and sector number. Loop until nbr of bits in freemap
+    //After having sector number of free sector, use inode_open. Check with magic number (same as INODE_MAGIC)
+    //bitmap mark after recovering the file
+  
+    for (block_sector_t sector = 0; sector < num_free_sectors(); sector++){
+      struct inode_disk *inode_buff = malloc(BLOCK_SECTOR_SIZE);
+      buffer_cache_read(sector, inode_buff);
+
+      if (inode_buff->magic == INODE_MAGIC){
+        struct dir *dir;
+        char name[NAME_MAX + 1]; //stores file names
+
+        snprintf(name, sizeof(name), "recovered0-%d", sector);
+        dir = dir_open_root(); 
+        dir_add(dir, name, sector, false);
+        dir_close(dir);
+      }
+      
+    }
+
+
+
+  } else if (flag == 1) { // recover all non-empty sectors
     // TODO
   } else if (flag == 2) { // data past end of file.
-
+    //The bytes to sectors function to get number of sectors
+    //Then get inode data sectors to get the array of sectors of the inode
+    //And use the number of sectors -1 for last sector
+    //As the index
+    //buffer cacher read
+    //bytes_to_sectors with fsutil_size passed to get length of array 
     // TODO
   }
 }
