@@ -108,7 +108,6 @@ void find_file(char *pattern) {
 }
 
 void fragmentation_degree() {
-  // TODO
   //Print out the degree of fragmentation of fs
   //degree = number of fragmented filed / number of fragmentable files
   //fragmented file: contains at least 2 consecutive data blocks in sectors that are more than 3 away from each other
@@ -133,17 +132,17 @@ void fragmentation_degree() {
         fragmentable++;
 
         block_sector_t *sectors = get_inode_data_sectors(f->inode); //get the sectors of data blocks associated to the inode of the file
-        offset_t length = f->inode->data.length;
-        printf("data.length: %d\n", length);
-        size_t sectors1 = bytes_to_sectors(length);
-        printf("sectors1: %ld\n", sectors1);
-        int fs = f_size/512;
-        printf("fsize: %d\n", fs);
+        //offset_t length = f->inode->data.length;
+        //printf("data.length: %d\n", length);
+        //size_t sectors1 = bytes_to_sectors(length);
+        //printf("sectors1: %ld\n", sectors1);
+        //int fs = f_size/512;
+        //printf("fsize: %d\n", fs);
         //Loop through the sectors 
-        for (int j = 1; j < (f_size / 512); j++){ 
-          printf("sector[j]: %d\n", sectors[j]);
-          if (sectors[j]-sectors[j-1]>3){
-            printf("sector[j]: %d\n", sectors[j]);
+        for (int j = 1; j < (f_size / 512); j++){  //starting at 1 because index 0 indicates the first sector. Need to start comparing the first 2 sectors
+          //printf("sector[j]: %d\n", sectors[j]);
+          if (sectors[j]-sectors[j-1]>3){ //sector[j] gives the sector number so calculate the distance between the current and next sectors
+            //printf("sector[j]: %d\n", sectors[j]);
             fragmented++;
             break;
           }
@@ -165,6 +164,43 @@ void fragmentation_degree() {
 
 int defragment() {
   // TODO
+  //Reduce nbr of fragmented files to 0 without data loss
+  //int fragmented = 0; //count for number of fragmented files
+  //int fragmentable = 0; //count for number of fragmentable files
+  //float degree = 0; //variable storing fragmentation degree
+
+  //structure similar to fsutil_ls()
+  struct dir *dir;
+  char name[NAME_MAX + 1]; //stores file names
+
+  dir = dir_open_root(); 
+  while (dir_readdir(dir, name)){ 
+    struct file *f = filesys_open(name); //open each file in root dir
+    if (f != NULL){
+      int f_size = file_length(f); //calculate file size
+
+      if (f_size > 0){ //if file is greater than 512 bytes (max sector size), it is fragmentable
+        //fragmentable++;
+        char *buffer = malloc(f_size);
+        fsutil_read(name, buffer, f_size);
+        file_close(name);
+        fsutil_rm(name);
+        fsutil_create(name, f_size);
+        fsutil_write(name, buffer, f_size);
+
+        free(buffer);
+      }
+    }
+    file_close(f);
+  }
+  dir_close(dir);
+
+  //degree = (float) fragmented/fragmentable;
+
+
+  //printf("Num fragmentable files: %d\n", fragmentable);
+  //printf("Num fragmented files: %d\n", fragmented);
+  //printf("Fragmentation pct: %.6f\n", degree);
   return 0;
 }
 
