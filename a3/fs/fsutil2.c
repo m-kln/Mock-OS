@@ -162,6 +162,21 @@ void fragmentation_degree() {
   printf("Fragmentation pct: %.6f\n", degree);
 }
 
+
+int file_count() {
+  struct dir *dir;
+  char name[NAME_MAX + 1];
+  int count = 0;
+  dir = dir_open_root();
+  if (dir == NULL)
+    return 1;
+  while (dir_readdir(dir, name))
+    count++;
+  dir_close(dir);
+  return count;
+}
+
+
 int defragment() {
   // TODO
   //Reduce nbr of fragmented files to 0 without data loss
@@ -176,7 +191,9 @@ int defragment() {
     char *contents;
   }; 
 
-  struct file_store *files = NULL; //initialize files array
+  int total_files = file_count();
+
+  struct file_store files[(total_files + 1)*sizeof(struct file_store)]; //initialize files array
   int nbr_files = 0;  //initialize nbr of files counter
 
   struct dir *dir;
@@ -195,7 +212,7 @@ int defragment() {
 
         file_close(f);
 
-        files = realloc(files, (nbr_files + 1) * sizeof(struct file_store));
+        files[nbr_files].size = f_size;
         files[nbr_files].filename = strdup(name);
         files[nbr_files].contents = buffer;
 
@@ -221,7 +238,7 @@ int defragment() {
     //free(files[i].contents);
   }
 
-  free(files);
+  //free(files);
   dir_close(dir);
     //file_close(f);
 
