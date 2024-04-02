@@ -259,13 +259,16 @@ void recover(int flag) {
       buffer_cache_read(sector, inode_buff);
 
       if (inode_buff->magic == INODE_MAGIC){
-        struct dir *dir;
-        char name[NAME_MAX + 1]; //stores file names
-
-        snprintf(name, sizeof(name), "recovered0-%d", sector);
-        dir = dir_open_root(); 
-        dir_add(dir, name, sector, false);
-        dir_close(dir);
+        struct inode *inode = inode_open(sector);
+        if (inode == NULL){
+          struct dir *dir;
+          char name[NAME_MAX + 1]; //stores file names
+          snprintf(name, sizeof(name), "recovered0-%d", sector);
+          dir = dir_open_root(); 
+          dir_add(dir, name, sector, false);
+          dir_close(dir);
+        }
+        
       }
       
     }
