@@ -131,19 +131,18 @@ void fragmentation_degree() {
         fragmentable++;
 
         block_sector_t *sectors = get_inode_data_sectors(f->inode); //get the sectors of data blocks associated to the inode of the file
+        
+        //Calculate nbr of sectors needed by a file
         offset_t length = f->inode->data.length;
-        //printf("data.length: %d\n", length);
-        size_t sectors1 = bytes_to_sectors(length);
-        //printf("sectors1: %ld\n", sectors1);
-        //int fs = f_size/512;
-        //printf("fsize: %d\n", fs);
-        //Loop through the sectors 
-        for (int j = 1; j < (sectors1); j++){  //starting at 1 because index 0 indicates the first sector. Need to start comparing the first 2 sectors
-          //printf("sector[j]: %d\n", sectors[j]);
-          if (sectors[j]-sectors[j-1]>3){ //sector[j] gives the sector number so calculate the distance between the current and next sectors
-            //printf("sector[j]: %d\n", sectors[j]);
-            fragmented++;
-            break;
+        size_t nbr_sectors = bytes_to_sectors(length);
+        
+        //Loop through the sectors to check for fragmented files
+        //j starts at 1 because first comparison is between sector 1 and sector 0 (if start at 0 -> current sector compares with itself)
+        for (int j = 1; j < nbr_sectors; j++){  
+          //sector[?] gives the sector number so calculate the distance between the current and next sectors
+          if (sectors[j]-sectors[j-1]>3){  //if distance is more than 3
+            fragmented++; //file is fragmented
+            break; //no need to continue the loop at this point
           }
         }
         free(sectors);
