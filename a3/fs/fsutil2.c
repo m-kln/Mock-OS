@@ -169,31 +169,63 @@ int defragment() {
   //int fragmentable = 0; //count for number of fragmentable files
   //float degree = 0; //variable storing fragmentation degree
 
-  //structure similar to fsutil_ls()
+  //struct containing essential info to store a file
+  struct file_store {
+    char *filename;
+    int size;
+    char *contents;
+  }; 
+
+  struct file_store *files = NULL; //initialize files array
+  int nbr_files = 0;  //initialize nbr of files counter
+
   struct dir *dir;
   char name[NAME_MAX + 1]; //stores file names
-
+  
+  //First loop: Store files + their data into an array
   dir = dir_open_root(); 
   while (dir_readdir(dir, name)){ 
-    struct file *f = filesys_open(name); //open each file in root dir
+    struct file *f = filesys_open(name); 
     if (f != NULL){
       int f_size = file_length(f); //calculate file size
 
-      if (f_size > 0){ //if file is greater than 512 bytes (max sector size), it is fragmentable
-        //fragmentable++;
-        char *buffer = malloc(f_size);
+      if (f_size > 0){ 
+        char *buffer = malloc(f_size); //buffer for file contents
         fsutil_read(name, buffer, f_size);
-        file_close(f);
-        fsutil_rm(name);
-        fsutil_create(name, f_size);
-        fsutil_write(name, buffer, f_size);
 
+        file_close(f);
+
+        files = realloc(files, (nbr_files + 1) * sizeof(struct file_store));
+        files[nbr_files].filename = strdup(name);
+        files[nbr_files].contents = buffer;
+
+        nbr_files++;
         free(buffer);
       }
     }
     //file_close(f);
   }
   dir_close(dir);
+
+  dir = dir_open_root();
+  while (dir_readdir(dir, name)){ 
+    fsutil_rm(name);
+  }
+  dir_close(dir);
+
+  dir = dir_open_root();
+  for (int i = 0; i<nbr_files; i++){
+    fsutil_create(files[i].filename, files[i].size);
+    fsutil_write(files[i].filename, files[i].contents, files[i].size);
+    //free(files[i].filename);
+    //free(files[i].contents);
+  }
+
+  free(files);
+  dir_close(dir);
+    //file_close(f);
+
+
 
   //degree = (float) fragmented/fragmentable;
 
