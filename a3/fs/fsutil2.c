@@ -204,22 +204,30 @@ int defragment() {
   //First loop: Store files + their data into an array
   dir = dir_open_root(); 
   while (dir_readdir(dir, name)){ 
+    printf("3\n");
     struct file *f = filesys_open(name); 
     if (f != NULL){
       int f_size = file_length(f); //calculate file size
 
       if (f_size > 0){ 
+        printf("4\n");
         char *buffer = malloc(f_size); //buffer for file contents
+        printf("5\n");
         fsutil_read(name, buffer, f_size);
-
+        printf("6\n");
         file_close(f);
-
+        printf("7\n");
         files[nbr_files].size = f_size;
+        printf("8\n");
         files[nbr_files].filename = strdup(name);
+        printf("9\n");
         files[nbr_files].contents = buffer;
+        printf("10\n");
 
         nbr_files++;
+        printf("11\n");
         free(buffer);
+        printf("12\n");
       }
     }
     //file_close(f);
@@ -229,17 +237,20 @@ int defragment() {
   dir = dir_open_root();
   while (dir_readdir(dir, name)){ 
     fsutil_rm(name);
+    printf("13\n");
   }
   dir_close(dir);
 
   dir = dir_open_root();
   for (int i = 0; i<nbr_files; i++){
     fsutil_create(files[i].filename, files[i].size);
+    printf("14\n");
     fsutil_write(files[i].filename, files[i].contents, files[i].size);
+    printf("15\n");
     //free(files[i].filename);
     //free(files[i].contents);
   }
-
+  printf("16\n");
   //free(files);
   dir_close(dir);
     //file_close(f);
