@@ -185,6 +185,7 @@ int defragment() {
   //float degree = 0; //variable storing fragmentation degree
 
   //struct containing essential info to store a file
+  printf("1\n");
   struct file_store {
     char *filename;
     int size;
@@ -194,6 +195,7 @@ int defragment() {
   int total_files = file_count();
 
   struct file_store files[(total_files + 1)*sizeof(struct file_store)]; //initialize files array
+  printf("2\n");
   int nbr_files = 0;  //initialize nbr of files counter
 
   struct dir *dir;
