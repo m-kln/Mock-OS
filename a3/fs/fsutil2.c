@@ -111,9 +111,8 @@ void fragmentation_degree() {
   //Print out the degree of fragmentation of fs
   //degree = number of fragmented filed / number of fragmentable files
   //fragmented file: contains at least 2 consecutive data blocks in sectors that are more than 3 away from each other
-  //ex: file with 3 DB in sectors 3,4,5 or 3,4,7 is not fragmented
-  //ex: file with 2 DB in sectors 4 and 10 is fragmented
-  //Fragmentable file : file that has more than 1 DB
+  //Fragmentable file : file that has more than 1 direct block
+
   int fragmented = 0; //count for number of fragmented files
   int fragmentable = 0; //count for number of fragmentable files
   float degree = 0; //variable storing fragmentation degree
@@ -134,12 +133,12 @@ void fragmentation_degree() {
         block_sector_t *sectors = get_inode_data_sectors(f->inode); //get the sectors of data blocks associated to the inode of the file
         //offset_t length = f->inode->data.length;
         //printf("data.length: %d\n", length);
-        //size_t sectors1 = bytes_to_sectors(length);
+        size_t sectors1 = bytes_to_sectors(length);
         //printf("sectors1: %ld\n", sectors1);
         //int fs = f_size/512;
         //printf("fsize: %d\n", fs);
         //Loop through the sectors 
-        for (int j = 1; j < (f_size / 512); j++){  //starting at 1 because index 0 indicates the first sector. Need to start comparing the first 2 sectors
+        for (int j = 1; j < (sectors1); j++){  //starting at 1 because index 0 indicates the first sector. Need to start comparing the first 2 sectors
           //printf("sector[j]: %d\n", sectors[j]);
           if (sectors[j]-sectors[j-1]>3){ //sector[j] gives the sector number so calculate the distance between the current and next sectors
             //printf("sector[j]: %d\n", sectors[j]);
@@ -163,7 +162,9 @@ void fragmentation_degree() {
 }
 
 
+//Helper function to count the number of files in root dir
 int file_count() {
+  //same code as fsutil_ls but with a counter
   struct dir *dir;
   char name[NAME_MAX + 1];
   int count = 0;
@@ -178,91 +179,62 @@ int file_count() {
 
 
 int defragment() {
-  // TODO
   //Reduce nbr of fragmented files to 0 without data loss
-  //int fragmented = 0; //count for number of fragmented files
-  //int fragmentable = 0; //count for number of fragmentable files
-  //float degree = 0; //variable storing fragmentation degree
 
   //struct containing essential info to store a file
-  printf("1\n");
   struct file_store {
     char *filename;
     int size;
     char *contents;
   }; 
 
-  int total_files = file_count();
+  int total_files = file_count(); //get the total number of files in root dir
 
   struct file_store files[(total_files + 1)*sizeof(struct file_store)]; //initialize files array
-  printf("2\n");
-  int nbr_files = 0;  //initialize nbr of files counter
+  int index = 0;  //initialize index counter for files array
 
   struct dir *dir;
   char name[NAME_MAX + 1]; //stores file names
   
-  //First loop: Store files + their data into an array
+  //Loop #1: Store files + their data into an array
   dir = dir_open_root(); 
   while (dir_readdir(dir, name)){ 
-    printf("3\n");
     struct file *f = filesys_open(name); 
     if (f != NULL){
       int f_size = file_length(f); //calculate file size
 
       if (f_size > 0){ 
-        printf("4\n");
         char *buffer = malloc(f_size); //buffer for file contents
-        printf("5\n");
-        fsutil_read(name, buffer, f_size);
-        printf("6\n");
+        fsutil_read(name, buffer, f_size); //read file contents into buffer
         file_close(f);
-        printf("7\n");
-        files[nbr_files].size = f_size;
-        printf("8\n");
-        files[nbr_files].filename = strdup(name);
-        printf("9\n");
-        files[nbr_files].contents = buffer;
-        printf("10\n");
 
-        nbr_files++;
-        printf("11\n");
-        //free(buffer);
-        printf("12\n");
+        //store all the file's info 
+        files[index].size = f_size;
+        files[index].filename = strdup(name);
+        files[index].contents = buffer;
+        
+        index++; //next file in the array
       }
     }
-    //file_close(f);
   }
   dir_close(dir);
 
+  //Loop #2: remove all the files from root dir
   dir = dir_open_root();
   while (dir_readdir(dir, name)){ 
     fsutil_rm(name);
-    printf("13\n");
   }
   dir_close(dir);
 
+  //Loop #3: recreate all the files and rewrite their contents
   dir = dir_open_root();
-  for (int i = 0; i<nbr_files; i++){
+  for (int i = 0; i<total_files; i++){
     fsutil_create(files[i].filename, files[i].size);
-    printf("14\n");
     fsutil_write(files[i].filename, files[i].contents, files[i].size);
-    printf("15\n");
-    //free(files[i].filename);
-    //free(files[i].contents);
   }
-  printf("16\n");
-  //free(files);
+
   dir_close(dir);
-    //file_close(f);
 
-
-
-  //degree = (float) fragmented/fragmentable;
-
-
-  //printf("Num fragmentable files: %d\n", fragmentable);
-  //printf("Num fragmented files: %d\n", fragmented);
-  //printf("Fragmentation pct: %.6f\n", degree);
   return 0;
 }
 
