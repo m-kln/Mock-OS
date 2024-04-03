@@ -262,12 +262,12 @@ void recover(int flag) {
         struct dir *dir = dir_open_root(); ;
         char name[NAME_MAX + 1]; //stores file names
         snprintf(name, sizeof(name), "recovered0-%d", sector);
+        bitmap_mark(free_map, sector);
         dir_add(dir, name, sector, false);
         dir_close(dir);
       }
       free(inode_buff);
     }
-
 
 
   } else if (flag == 1) { // recover all non-empty sectors
