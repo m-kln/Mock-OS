@@ -298,14 +298,6 @@ void recover(int flag) {
       free(buffer);
     }
   } else if (flag == 2) { // data past end of file.
-    //The bytes to sectors function to get number of sectors
-    //Then get inode data sectors to get the array of sectors of the inode
-    //And use the number of sectors -1 for last sector
-    //As the index
-    //buffer cacher read
-    //bytes_to_sectors with fsutil_size passed to get length of array 
-    // TODO
-    //you can use the bytes_to_sectors function with fsutil_size passed in to get the length of that array
     struct dir *dir;
     char name[NAME_MAX + 1]; //stores file names
     dir = dir_open_root(); 
@@ -315,6 +307,7 @@ void recover(int flag) {
         //Calculate nbr of sectors needed by a file
         offset_t length = f->inode->data.length;
         size_t nbr_sectors = bytes_to_sectors(length);
+
         block_sector_t *sectors = get_inode_data_sectors(f->inode); //get array of sectors of the inode
         if (sectors != NULL){
           //Hidden data is in the last sector
@@ -323,15 +316,20 @@ void recover(int flag) {
           buffer_cache_read(last_sector, buffer); //read last sector data into buffer
 
           bool hidden = false; //boolean to find hidden data
-          size_t start = length - (nbr_sectors - 1) * 512; //start index of the last sector
-          for (size_t i = start; i < BLOCK_SECTOR_SIZE; i++){
-            if (buffer[i] != 0){
+          //Calculate start index of the last sector
+          //nbr_sectors - 1: nbr of fully occupied sectors (last one contains hidden)
+          //(nbr_sectors - 1) * 512: total nbr of fully occupied bytes
+          //length - (nbr_sectors - 1) * 512: nbr of bytes left in the last sector that might contain hidden data aka the start index
+          size_t start = length - (nbr_sectors - 1) * 512; 
+          //iterate through the remaining bytes of the last sector to find potential hidden data
+          for (size_t i = start; i < BLOCK_SECTOR_SIZE; i++){ 
+            if (buffer[i] != 0){ 
               hidden = true;
               break;
             }
           }
 
-          //Count total nbr of non-zero bytes which will be used for the size of the file
+          //Count total nbr of non-zero bytes in hidden data section which will be used for the size of the file
           int size = 0;
           for (size_t i = start; i<BLOCK_SECTOR_SIZE; i++){
             if (buffer[i] != 0) {
@@ -339,28 +337,20 @@ void recover(int flag) {
             }
           }
 
-          //Buffer for hidden data
-          //if (size > 0){
-          //  char *hidden_data = malloc(size);
-          //  memcpy(hidden_data, )
-          //}
-
           if (hidden){
             char filename[FILENAME_MAX];
             snprintf(filename, sizeof(filename), "recovered2-%s.txt", name);  //format filename
             //Create file in real filesystem
             FILE *file = fopen(filename, "wb"); //write in binary mode
             if (file != NULL){
+              //&buffer[start+1] ensures that we are only writing the hidden data 
               fwrite(&buffer[start+1], 1, size, file); //write the data stored in buffer to the file
               fclose(file);
             }
           }
-
           free(buffer);
           free(sectors);
-
         }
-
         file_close(f);
       }
     }
