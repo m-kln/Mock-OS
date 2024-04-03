@@ -261,34 +261,37 @@ void recover(int flag) {
     }
 
   } else if (flag == 1) { // recover all non-empty sectors
-    size_t total_bits = bitmap_size(free_map); //get total nbr of bits in the free map
   
-    //Iterate through each bit in the bitmap to scan free sectors
-    for (size_t bit = 4; bit < num_free_sectors(); bit++){
-      char *buffer = malloc(BLOCK_SECTOR_SIZE); //need the disk format of inode
-      buffer_cache_read(bit, buffer); //read contents of the sector represented by the current bit
+    //Iterate through each sector starting from sector 4
+    for (size_t sector = 4; sector < num_free_sectors(); sector++){
+      char *buffer = malloc(BLOCK_SECTOR_SIZE); //buffer containing sector data
+      buffer_cache_read(sector, buffer); 
 
-      bool is_nonzero = false;
-      for (size_t i = 0; i<512; i++){
-        if (buffer[i] != 0) {
+      bool is_nonzero = false; //check if data is non-zero
+      //check every byte in the buffer
+      for (size_t i = 0; i<BLOCK_SECTOR_SIZE; i++){
+        if (buffer[i] != 0) { //non-zero byte
           is_nonzero = true;
           break;
         }
       }
 
-      int tmp = 0;
-      for (size_t i = 0; i<512; i++){
+      //Count total nbr of non-zero bytes which will be used for the size of the file
+      int size = 0;
+      for (size_t i = 0; i<BLOCK_SECTOR_SIZE; i++){
         if (buffer[i] != 0) {
-          tmp++;
+          size++;
         }
       }
 
-      if(is_nonzero){
+      //if sector is non-empty
+      if(is_nonzero){ 
         char name[NAME_MAX + 1];
-        snprintf(name, sizeof(name), "recovered1-%ld.txt", bit);  //format filename
-        FILE *file = fopen(name, "wb");
+        snprintf(name, sizeof(name), "recovered1-%ld.txt", sector);  //format filename
+        //Create file in real filesystem
+        FILE *file = fopen(name, "wb"); //write in binary mode
         if (file != NULL){
-          fwrite(buffer, 1, tmp, file);
+          fwrite(buffer, 1, size, file); //write the data stored in buffer to the file
           fclose(file);
         }
       }
@@ -302,5 +305,59 @@ void recover(int flag) {
     //buffer cacher read
     //bytes_to_sectors with fsutil_size passed to get length of array 
     // TODO
+    //you can use the bytes_to_sectors function with fsutil_size passed in to get the length of that array
+    struct dir *dir;
+    char name[NAME_MAX + 1]; //stores file names
+    dir = dir_open_root(); 
+    while (dir_readdir(dir, name)){ 
+      struct file *f = filesys_open(name); 
+      if (f != NULL){
+        //Calculate nbr of sectors needed by a file
+        offset_t length = f->inode->data.length;
+        size_t nbr_sectors = bytes_to_sectors(length);
+        block_sector_t *sectors = get_inode_data_sectors(f->inode); //get array of sectors of the inode
+        if (sectors != NULL){
+          //Hidden data is in the last sector
+          block_sector_t last_sector = sectors[nbr_sectors - 1]; //find last sector
+          char *buffer = malloc(BLOCK_SECTOR_SIZE); //buffer containing sector data
+          buffer_cache_read(last_sector, buffer); //read last sector data into buffer
+
+          bool hidden = false; //boolean to find hidden data
+          size_t start = length - (nbr_sectors - 1) * 512; //start index of the last sector
+          for (size_t i = start; i < BLOCK_SECTOR_SIZE; i++){
+            if (buffer[i] != 0){
+              hidden = true;
+              break;
+            }
+          }
+
+          //Count total nbr of non-zero bytes which will be used for the size of the file
+          int size = 0;
+          for (size_t i = start; i<BLOCK_SECTOR_SIZE; i++){
+            if (buffer[i] != 0) {
+              size++;
+            }
+          }
+
+          if (hidden){
+            char filename[FILENAME_MAX];
+            snprintf(filename, sizeof(filename), "recovered2-%s.txt", name);  //format filename
+            //Create file in real filesystem
+            FILE *file = fopen(filename, "wb"); //write in binary mode
+            if (file != NULL){
+              fwrite(buffer, 1, size, file); //write the data stored in buffer to the file
+              fclose(file);
+            }
+          }
+
+          free(buffer);
+          free(sectors);
+
+        }
+
+        file_close(f);
+      }
+    }
+    dir_close(dir);
   }
 }
