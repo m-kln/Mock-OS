@@ -265,24 +265,27 @@ void recover(int flag) {
 
     //Iterate through each bit in the bitmap to scan free sectors
     for (size_t bit = 4; bit < total_bits; bit++){
-      if (bitmap_test(free_map, bit)){ //if current bit is free (not set)
-        int *buffer = malloc(BLOCK_SECTOR_SIZE); //need the disk format of inode
-        buffer_cache_read(bit, buffer); //read contents of the sector represented by the current bit
+      uint8_t *buffer = malloc(BLOCK_SECTOR_SIZE); //need the disk format of inode
+      buffer_cache_read(bit, buffer); //read contents of the sector represented by the current bit
 
-        for (size_t i = 0; i<512; i++){
-          if (buffer[i] != 0) {
-            char name[NAME_MAX + 1];
-            snprintf(name, sizeof(name), "recovered1-%ld", bit);  //format filename
-            FILE *file = fopen(name, "wb");
-            if (file != NULL){
-              fwrite(buffer, 1, 512, file);
-              fclose(file);
-            }
-          }
+      bool is_nonzero = false;
+      for (size_t i = 0; i<512; i++){
+        if (buffer[i] != 0) {
+          is_nonzero = true;
           break;
         }
-        free(buffer);
       }
+
+      if(is_nonzero){
+        char name[NAME_MAX + 1];
+        snprintf(name, sizeof(name), "recovered1-%ld", bit);  //format filename
+        FILE *file = fopen(name, "wb");
+        if (file != NULL){
+          fwrite(buffer, 1, 512, file);
+          fclose(file);
+        }
+      }
+      free(buffer);
     }
   } else if (flag == 2) { // data past end of file.
     //The bytes to sectors function to get number of sectors
