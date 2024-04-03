@@ -345,7 +345,7 @@ void recover(int flag) {
             //Create file in real filesystem
             FILE *file = fopen(filename, "wb"); //write in binary mode
             if (file != NULL){
-              fwrite(buffer, 1, size, file); //write the data stored in buffer to the file
+              fwrite(buffer, 1, 512, file); //write the data stored in buffer to the file
               fclose(file);
             }
           }
