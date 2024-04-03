@@ -265,7 +265,7 @@ void recover(int flag) {
 
     //Iterate through each bit in the bitmap to scan free sectors
     for (size_t bit = 4; bit < total_bits; bit++){
-      if (!bitmap_test(free_map, bit)){ //if current bit is free (not set)
+      if (bitmap_test(free_map, bit)){ //if current bit is free (not set)
         int *buffer = malloc(BLOCK_SECTOR_SIZE); //need the disk format of inode
         buffer_cache_read(bit, buffer); //read contents of the sector represented by the current bit
 
@@ -278,8 +278,8 @@ void recover(int flag) {
               fwrite(buffer, 1, 512, file);
               fclose(file);
             }
-            break;
           }
+          break;
         }
         free(buffer);
       }
