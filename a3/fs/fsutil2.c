@@ -254,19 +254,22 @@ void recover(int flag) {
     //After having sector number of free sector, use inode_open. Check with magic number (same as INODE_MAGIC)
     //bitmap mark after recovering the file
   
-    for (block_sector_t sector = 0; sector < num_free_sectors(); sector++){
-      struct inode_disk *inode_buff = malloc(BLOCK_SECTOR_SIZE);
-      buffer_cache_read(sector, inode_buff);
+    size_t bm_size = bitmap_size(free_map);
+    for (size_t bit = 0; bit < bm_size; bit++){
+      if (bitmap_test(free_map, bit)){
+        struct inode_disk *inode_buff = malloc(BLOCK_SECTOR_SIZE);
+        buffer_cache_read(bit, inode_buff);
 
-      if (inode_buff->magic == INODE_MAGIC){
-        struct dir *dir = dir_open_root(); ;
-        char name[NAME_MAX + 1]; //stores file names
-        snprintf(name, sizeof(name), "recovered0-%d", sector);
-        bitmap_mark(free_map, sector);
-        dir_add(dir, name, sector, false);
-        dir_close(dir);
+        if (inode_buff->magic == INODE_MAGIC){
+          struct dir *dir = dir_open_root(); ;
+          char name[NAME_MAX + 1]; //stores file names
+          snprintf(name, sizeof(name), "recovered0-%ld", bit);
+          bitmap_mark(free_map, bit);
+          dir_add(dir, name, bit, false);
+          dir_close(dir);
+        }
+        free(inode_buff);
       }
-      free(inode_buff);
     }
 
 
