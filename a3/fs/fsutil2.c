@@ -288,7 +288,7 @@ void recover(int flag) {
         snprintf(name, sizeof(name), "recovered1-%ld.txt", bit);  //format filename
         FILE *file = fopen(name, "wb");
         if (file != NULL){
-          fwrite(buffer, 1, tmp+1, file);
+          fwrite(buffer, 1, tmp, file);
           fclose(file);
         }
       }
