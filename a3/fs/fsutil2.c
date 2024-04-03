@@ -339,13 +339,19 @@ void recover(int flag) {
             }
           }
 
+          //Buffer for hidden data
+          //if (size > 0){
+          //  char *hidden_data = malloc(size);
+          //  memcpy(hidden_data, )
+          //}
+
           if (hidden){
             char filename[FILENAME_MAX];
             snprintf(filename, sizeof(filename), "recovered2-%s.txt", name);  //format filename
             //Create file in real filesystem
             FILE *file = fopen(filename, "wb"); //write in binary mode
             if (file != NULL){
-              fwrite(buffer[start], 1, size, file); //write the data stored in buffer to the file
+              fwrite(&buffer[start], 1, size, file); //write the data stored in buffer to the file
               fclose(file);
             }
           }
