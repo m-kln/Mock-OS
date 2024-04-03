@@ -269,12 +269,17 @@ void recover(int flag) {
       buffer_cache_read(bit, buffer); //read contents of the sector represented by the current bit
 
       bool is_nonzero = false;
-      int tmp = 0;
       for (size_t i = 0; i<512; i++){
         if (buffer[i] != 0) {
           is_nonzero = true;
-          tmp = i;
           break;
+        }
+      }
+
+      int tmp = 0;
+      for (size_t i = 0; i<512; i++){
+        if (buffer[i] != 0) {
+          tmp++;
         }
       }
 
