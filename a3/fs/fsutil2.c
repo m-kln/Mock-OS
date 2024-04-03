@@ -264,7 +264,7 @@ void recover(int flag) {
     size_t total_bits = bitmap_size(free_map); //get total nbr of bits in the free map
 
     //Iterate through each bit in the bitmap to scan free sectors
-    for (size_t bit = 4; bit < total_bits; bit++){
+    for (size_t bit = 4; bit < num_free_sectors() - 4; bit++){
       uint8_t *buffer = malloc(BLOCK_SECTOR_SIZE); //need the disk format of inode
       buffer_cache_read(bit, buffer); //read contents of the sector represented by the current bit
 
