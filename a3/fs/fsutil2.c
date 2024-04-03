@@ -256,7 +256,7 @@ void recover(int flag) {
   
     size_t bm_size = bitmap_size(free_map);
     for (size_t bit = 0; bit < bm_size; bit++){
-      if (bitmap_test(free_map, bit)){
+      if (!bitmap_test(free_map, bit)){
         struct inode_disk *inode_buff = malloc(BLOCK_SECTOR_SIZE);
         buffer_cache_read(bit, inode_buff);
 
