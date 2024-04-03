@@ -264,8 +264,8 @@ void recover(int flag) {
     size_t total_bits = bitmap_size(free_map); //get total nbr of bits in the free map
   
     //Iterate through each bit in the bitmap to scan free sectors
-    for (size_t bit = 4; bit < num_free_sectors; bit++){
-      uint8_t *buffer = malloc(BLOCK_SECTOR_SIZE); //need the disk format of inode
+    for (size_t bit = 4; bit < num_free_sectors(); bit++){
+      char *buffer = malloc(BLOCK_SECTOR_SIZE); //need the disk format of inode
       buffer_cache_read(bit, buffer); //read contents of the sector represented by the current bit
 
       bool is_nonzero = false;
@@ -281,7 +281,7 @@ void recover(int flag) {
         snprintf(name, sizeof(name), "recovered1-%ld.txt", bit);  //format filename
         FILE *file = fopen(name, "wb");
         if (file != NULL){
-          fwrite(buffer, 1, 512, file);
+          fwrite(buffer, 1, sizeof(buffer), file);
           fclose(file);
         }
       }
