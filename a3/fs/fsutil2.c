@@ -312,6 +312,9 @@ void recover(int flag) {
     while (dir_readdir(dir, name)){ 
       struct file *f = filesys_open(name); 
       if (f != NULL){
+        printf("file contents:\n");
+        fsutil_cat(name);
+        printf("end\n");
         //Calculate nbr of sectors needed by a file
         offset_t length = f->inode->data.length;
         size_t nbr_sectors = bytes_to_sectors(length);
