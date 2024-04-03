@@ -269,9 +269,11 @@ void recover(int flag) {
       buffer_cache_read(bit, buffer); //read contents of the sector represented by the current bit
 
       bool is_nonzero = false;
+      int temp = 0;
       for (size_t i = 0; i<512; i++){
         if (buffer[i] != 0) {
           is_nonzero = true;
+          temp = i;
           break;
         }
       }
@@ -281,7 +283,7 @@ void recover(int flag) {
         snprintf(name, sizeof(name), "recovered1-%ld.txt", bit);  //format filename
         FILE *file = fopen(name, "wb");
         if (file != NULL){
-          fwrite(buffer, 1, sizeof(buffer), file);
+          fwrite(buffer, 1, temp, file);
           fclose(file);
         }
       }
