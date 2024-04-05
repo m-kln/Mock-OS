@@ -10,30 +10,29 @@
 #include "inode.h"
 #include "off_t.h"
 #include "partition.h"
+#include "../interpreter.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 int copy_in(char *fname) {
-  // TODO
   //real HD -> shell HD
   //lack of free space -> "Warning: could only write %d out of %ld bytes (reached end of file)"
   //%d: nbr of bytes you could write %ld:total file size of the file
-  size_t b;
   FILE* file = fopen(fname, "rb");
 
   if (file == NULL) {
-    printf("fdn\n");
-    return 0;
+    return FILE_DOES_NOT_EXIST;
   }
 
   //Find real HD file's size 
   fseek(file, 0, SEEK_END); //point to the end of the file
   unsigned int size = ftell(file); //calculate the size of the file
-  printf("size of OG file: %d\n", size);
   fseek(file, 0, SEEK_SET); //point to start of file for reading
 
-  fsutil_create(fname, size); //create file on shell HD using same name and size as OG
+  if (!fsutil_create(fname, size)){ //create file on shell HD using same name and size as OG
+    return FILE_CREATION_ERROR;
+  } 
   
   char* buffer = malloc((size+1)*sizeof(char)); 
   memset(buffer, 0 , size+1);
@@ -43,10 +42,16 @@ int copy_in(char *fname) {
     //fsutil_write(fname, buffer, b);
   //}
   while (!feof(file)) {
-    fread(buffer, sizeof(buffer), sizeof(buffer), file);
+    if(fread(buffer, sizeof(buffer), sizeof(buffer), file)){
+      continue;
+    }else {
+      return FILE_READ_ERROR;
+    }
   }
 
-  fsutil_write(fname, buffer, size+1);
+  if (!fsutil_write(fname, buffer, size+1)){
+    return FILE_WRITE_ERROR;
+  }
 
   fclose(file);
   free(buffer);
@@ -56,27 +61,23 @@ int copy_in(char *fname) {
 
 int copy_out(char *fname) {
   //code from lab 
-  //struct file *file_s = get_file_by_fname(fname);
-  //block_sector_t *in = get_inode_data_sectors(file_s->inode);
-  //printf("inode: %ls\n", in);
-  //offset_t offset = file_tell(file_s); //store file's current offset 
-
   int size = fsutil_size(fname); //retrieve size of the file
   char* buffer = malloc((size+1)*sizeof(char)); 
   memset(buffer, 0 , size+1);
   fsutil_seek(fname, 0); //make sure offset points to the start of the file
-  fsutil_read(fname, buffer, size);
+  if (!fsutil_read(fname, buffer, size)) {
+    return FILE_READ_ERROR;
+  }
 
   FILE* file = fopen(fname, "w");
 
   if (file == NULL) {
-    printf("fdn\n");
-    return 0;
+    return FILE_DOES_NOT_EXIST;
   }
+
   fputs(buffer, file);
   fclose(file);
   free(buffer);
- // fsutil_seek(fname, offset); //reset file's offset 
   return 0;
 }
 
