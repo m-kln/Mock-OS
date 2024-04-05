@@ -27,6 +27,7 @@ int run(const char *script, char *cwd);
 int exec(char *scripts[], int size, const char *policy, char *cwd);
 
 char *error_msgs[] = {
+    "no error",
     "file does not exist",
     "no space left in shell memory",
     "ready queue is full",

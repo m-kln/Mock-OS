@@ -2,6 +2,7 @@
 #define INTERPRETER_H
 
 enum Error {
+  NO_ERROR,
   FILE_DOES_NOT_EXIST,
   NO_MEM_SPACE,
   READY_QUEUE_FULL,
