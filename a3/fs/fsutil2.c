@@ -35,9 +35,10 @@ int copy_in(char *fname) {
 
   size_t free_sectors = num_free_sectors();
 
-  unsigned int write = 0;
+  unsigned int write = 0; //nbr of sectors to write for large file
 
-  if (file_sectors > free_sectors){
+  if (file_sectors > free_sectors){ //large file case (sectors needed more than available)
+    //calculation of required sectors for writing are inspired by a comment under Ed post #770
     if (free_sectors <= 123){
       write = free_sectors * 512;
     } else if (free_sectors > 123 && free_sectors <= (123+128)){
@@ -51,8 +52,8 @@ int copy_in(char *fname) {
       return FILE_CREATION_ERROR;
     } 
 
-    char* buffer = malloc((write+1)*sizeof(char)); 
-    memset(buffer, 0 , write+1);
+    char* buffer = malloc((write)*sizeof(char)); 
+    memset(buffer, 0 , write);
 
     while (!feof(file)) {
       if(fread(buffer, sizeof(buffer), sizeof(buffer), file)){
@@ -69,7 +70,7 @@ int copy_in(char *fname) {
     }
     free(buffer);
 
-    printf("Warning: could only write %d out of %d bytes (reached end of file)\n", free_sectors*512, size);
+    printf("Warning: could only write %d out of %d bytes (reached end of file)\n", write, size);
   } else {
     if (!fsutil_create(fname, size)){ //create file on shell HD using same name and size as OG
       fclose(file);
