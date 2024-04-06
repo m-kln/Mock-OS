@@ -30,12 +30,11 @@ int copy_in(char *fname) {
   unsigned int size = ftell(file); //calculate the size of the file
   fseek(file, 0, SEEK_SET); //point to start of file for reading
 
-  size_t file_sectors = size / BLOCK_SECTOR_SIZE;
+  size_t file_sectors = size / BLOCK_SECTOR_SIZE; //calculate nbr of sectores needed by the file
   if (size % BLOCK_SECTOR_SIZE != 0) file_sectors++;
 
   size_t free_sectors = num_free_sectors();
 
-  unsigned int write_size = (free_sectors) * BLOCK_SECTOR_SIZE;
   unsigned int write = 0;
 
   if (file_sectors > free_sectors){
@@ -70,7 +69,7 @@ int copy_in(char *fname) {
     }
     free(buffer);
 
-    printf("Warning: could only write %d out of %d bytes (reached end of file)\n", write, size);
+    printf("Warning: could only write %d out of %d bytes (reached end of file)\n", free_sectors*512, size);
   } else {
     if (!fsutil_create(fname, size)){ //create file on shell HD using same name and size as OG
       fclose(file);
