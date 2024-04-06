@@ -52,8 +52,8 @@ int copy_in(char *fname) {
       return FILE_CREATION_ERROR;
     } 
 
-    char* buffer = malloc((write)*sizeof(char)); 
-    memset(buffer, 0 , write);
+    char* buffer = malloc((write+1)*sizeof(char)); 
+    memset(buffer, 0 , write+1);
 
     while (!feof(file)) {
       if(fread(buffer, sizeof(buffer), sizeof(buffer), file)){
@@ -64,7 +64,7 @@ int copy_in(char *fname) {
       }
     }
 
-    if (!fsutil_write(fname, buffer, write)){
+    if (!fsutil_write(fname, buffer, write+1)){
       fclose(file);
       return FILE_WRITE_ERROR;
     }
