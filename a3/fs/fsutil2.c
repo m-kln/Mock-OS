@@ -17,8 +17,6 @@
 
 int copy_in(char *fname) {
   //real HD -> shell HD
-  //lack of free space -> "Warning: could only write %d out of %ld bytes (reached end of file)"
-  //%d: nbr of bytes you could write %ld:total file size of the file
   FILE* file = fopen(fname, "rb");
 
   if (file == NULL) {
@@ -64,14 +62,14 @@ int copy_in(char *fname) {
       }
     }
 
-    if (!fsutil_write(fname, buffer, write+1)){
+    if (!fsutil_write(fname, buffer, write)){
       fclose(file);
       return FILE_WRITE_ERROR;
     }
     free(buffer);
 
     printf("Warning: could only write %d out of %d bytes (reached end of file)\n", write, size);
-  } else {
+  } else { //normal case
     if (!fsutil_create(fname, size)){ //create file on shell HD using same name and size as OG
       fclose(file);
       return FILE_CREATION_ERROR;

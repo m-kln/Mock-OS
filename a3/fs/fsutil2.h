@@ -1,3 +1,4 @@
+//Mona Kalaoun 261044639
 #ifndef FILESYS_FSUTIL2_H
 #define FILESYS_FSUTIL2_H
 
@@ -5,6 +6,7 @@ int copy_in(char *fname);
 int copy_out(char *fname);
 void find_file(char *pattern);
 void fragmentation_degree();
+int file_count();
 int defragment();
 void recover(int flag);
 
