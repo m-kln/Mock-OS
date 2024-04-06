@@ -30,31 +30,72 @@ int copy_in(char *fname) {
   unsigned int size = ftell(file); //calculate the size of the file
   fseek(file, 0, SEEK_SET); //point to start of file for reading
 
-  if (!fsutil_create(fname, size)){ //create file on shell HD using same name and size as OG
-    return FILE_CREATION_ERROR;
-  } 
-  
-  char* buffer = malloc((size+1)*sizeof(char)); 
-  memset(buffer, 0 , size+1);
+  size_t file_sectors = size / BLOCK_SECTOR_SIZE;
+  if (size % BLOCK_SECTOR_SIZE != 0) file_sectors++;
 
-  
-  //while ((b=fread(buffer, 1, size+1, file)) > 0){
-    //fsutil_write(fname, buffer, b);
-  //}
-  while (!feof(file)) {
-    if(fread(buffer, sizeof(buffer), sizeof(buffer), file)){
-      continue;
-    }else {
-      return FILE_READ_ERROR;
+  size_t free_sectors = num_free_sectors();
+
+  unsigned int write_size = (free_sectors) * BLOCK_SECTOR_SIZE;
+  unsigned int write = 0;
+
+  if (file_sectors > free_sectors){
+    if (free_sectors <= 123){
+      write = free_sectors * 512;
+    } else if (free_sectors > 123 && free_sectors <= (123+128)){
+      write = (free_sectors - 2) * 512;
+    } else {
+      size_t additional = ((free_sectors - 3) - 1 - 128) / 128;
+      write = (free_sectors - (additional + 3)) * 512;
     }
-  }
+    if (!fsutil_create(fname, 1)){ //create file on shell HD using same name and size as OG
+      fclose(file);
+      return FILE_CREATION_ERROR;
+    } 
 
-  if (!fsutil_write(fname, buffer, size+1)){
-    return FILE_WRITE_ERROR;
-  }
+    char* buffer = malloc((write+1)*sizeof(char)); 
+    memset(buffer, 0 , write+1);
 
+    while (!feof(file)) {
+      if(fread(buffer, sizeof(buffer), sizeof(buffer), file)){
+        continue;
+      }else {
+        fclose(file);
+        return FILE_READ_ERROR;
+      }
+    }
+
+    if (!fsutil_write(fname, buffer, write)){
+      fclose(file);
+      return FILE_WRITE_ERROR;
+    }
+    free(buffer);
+
+    printf("Warning: could only write %d out of %d bytes (reached end of file)\n", write, size);
+  } else {
+    if (!fsutil_create(fname, size)){ //create file on shell HD using same name and size as OG
+      fclose(file);
+      return FILE_CREATION_ERROR;
+    } 
+
+    char* buffer = malloc((size+1)*sizeof(char)); 
+    memset(buffer, 0 , size+1);
+
+    while (!feof(file)) {
+      if(fread(buffer, sizeof(buffer), sizeof(buffer), file)){
+        continue;
+      }else {
+        fclose(file);
+        return FILE_READ_ERROR;
+      }
+    }
+
+    if (!fsutil_write(fname, buffer, size+1)){
+      fclose(file);
+      return FILE_WRITE_ERROR;
+    }
+    free(buffer);
+  }
   fclose(file);
-  free(buffer);
   fsutil_seek(fname, 0); //reset file's offset 
   return 0;
 }
